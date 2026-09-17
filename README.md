@@ -52,6 +52,20 @@ base, uniform noise, or transitional. A sixth class, anomalous, is
 defined by the calibration-adjusted threshold described above rather
 than by the coefficients.
 
+## Operational labels
+
+Each location is assigned a regime based on which of its local
+coefficients dominates:
+
+| Label | What it means |
+|---|---|
+| Speed-dominant | Noise tracks vehicle speed; direction matters little. |
+| Urban canyon / directional | Orientation dominates: the same speed sounds different depending on the axis of travel. Typical of enclosed streets. |
+| Stationary base | High local baseline with weak speed and orientation effects. Noise comes from the surroundings, not from passing traffic. |
+| Uniform noise | All effects weak and the level close to the local baseline. Nothing stands out. |
+| Transitional / mixed | Speed and orientation effects are comparable, with neither dominating. |
+| Anomalous / review | Residual exceeds the calibration-adjusted threshold for its gain bin. Flagged for inspection rather than interpreted. |
+
 ## Findings
 
 **Calibration-aware thresholds change the anomaly count by an order of
