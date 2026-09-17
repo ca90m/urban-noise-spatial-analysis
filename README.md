@@ -46,12 +46,6 @@ anomaly thresholds were computed per gain bin from the local residual
 distribution, so the criterion adapts to local variance instead of
 applying one cutoff everywhere.
 
-**Operational labels.** Each location was classified from its local
-coefficients into speed-dominant, urban-canyon/directional, stationary
-base, uniform noise, or transitional. A sixth class, anomalous, is
-defined by the calibration-adjusted threshold described above rather
-than by the coefficients.
-
 ## Operational labels
 
 Each location is assigned a regime based on which of its local
