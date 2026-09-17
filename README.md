@@ -116,4 +116,19 @@ points. Model-wide R² ranges from 0.74 to 0.81.
   enough weekday/weekend mix to estimate β have a median speed of
   16.6 km/h at night in Gandhinagar, against 38 km/h for the full set.
 
-- Large residuals concentrate in tracks with one or
+- Large residuals concentrate in tracks with one or two observations,
+  which the local model cannot fit well. Filtering short tracks is an
+  open improvement.
+
+- GWR local estimates are spatially correlated, so |z| ≥ 2 flags
+  locations worth attention rather than independent significance tests.
+
+## Contents
+
+- `*.html` — standalone interactive maps
+
+## Authors
+
+Analysis and maps in this repository: Cristian Antonio.
+Part of a two-person final project for the Spatial Statistics course at
+Universidad de Buenos Aires (2025), together with Ezequiel Grenat.
