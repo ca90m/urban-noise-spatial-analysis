@@ -42,16 +42,26 @@ out to be heteroscedastic against it (GAM on var(gain): p < 2e-16,
 SD95/05 ≈ 1.29). This was handled in two steps: a robust LOESS of
 residual on gain gives a bias estimate that is subtracted and
 re-centred, and then, because variance still differs by gain level,
-anomaly thresholds were computed per gain bin as
-U(bin) = max{5 dB, P95(debiased residual | bin)}. A point is flagged as
-anomalous when it exceeds its own bin's threshold, so the criterion
-adapts to local variance instead of applying one cutoff everywhere.
+anomaly thresholds were computed per gain bin from the local residual
+distribution, so the criterion adapts to local variance instead of
+applying one cutoff everywhere.
 
 **Operational labels.** Each location was classified from its local
 coefficients into speed-dominant, urban-canyon/directional, stationary
-base, uniform noise, transitional, or anomalous.
+base, uniform noise, or transitional. A sixth class, anomalous, is
+defined by the calibration-adjusted threshold described above rather
+than by the coefficients.
 
 ## Findings
+
+**Calibration-aware thresholds change the anomaly count by an order of
+magnitude.** A fixed 5 dB cutoff flags 24% of points as anomalous; the
+calibration-aware criterion brings that to 2%. The rate stays flat
+across calibration levels (1–2% in every gain bin) rather than
+concentrating on noisier devices, and track-level gain shows almost no
+correlation with median residual afterwards (−0.20 to +0.14 across the
+four cases), which is what the bias correction was meant to achieve. The
+maps keep both layers so the difference can be inspected directly.
 
 **The directional term behaves very differently in each city.** The
 median alignment coefficient is +4.6 (day) and +6.8 (night) in
@@ -78,7 +88,7 @@ no weekend effect there; GWR recovers two opposing ones that cancel out.
 
 **The labelling separates model performance cleanly.** Urban-canyon
 locations fit best (median |residual| 1.7–1.8 dB, local R² up to 0.95 at
-night), speed-dominant worst among regular regimes (R² 0.68), and the
+night) and speed-dominant worst among regular regimes (R² 0.68). The
 anomalous class isolates median residuals of 14.7–15.6 dB in under 2% of
 points. Model-wide R² ranges from 0.74 to 0.81.
 
@@ -98,19 +108,4 @@ points. Model-wide R² ranges from 0.74 to 0.81.
   enough weekday/weekend mix to estimate β have a median speed of
   16.6 km/h at night in Gandhinagar, against 38 km/h for the full set.
 
-- Large residuals concentrate in tracks with one or two observations,
-  which the local model cannot fit well. Filtering short tracks is an
-  open improvement.
-
-- GWR local estimates are spatially correlated, so |z| ≥ 2 flags
-  locations worth attention rather than independent significance tests.
-
-## Contents
-
-- `*.html` — standalone interactive maps
-
-## Authors
-
-Analysis and maps in this repository: Cristian Antonio.
-Part of a two-person final project for the Spatial Statistics course at
-Universidad de Buenos Aires (2025), together with Ezequiel Grenat.
+- Large residuals concentrate in tracks with one or
