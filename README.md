@@ -19,10 +19,14 @@ Layer controls and popups can be switched between Spanish and English.
 ## Data
 
 Mobile noise measurements with sound level, speed, heading, GPS accuracy
-and a device calibration gain, from the NoisePlanet / NoiseCapture open
-dataset. The data is hierarchical: samples belong to tracks, and tracks
-to urban areas. Records were filtered by spatio-temporal quality
-criteria and accuracy thresholds, and timestamps corrected to local time.
+and a device calibration gain, from the NoiseCapture crowdsourced
+dataset ([Noise-Planet](https://noise-planet.org/), UMRAE and Lab-STICC,
+distributed under [ODbL](https://opendatacommons.org/licenses/odbl/)).
+Measurements come from an Android app, which explains the wide spread in
+device calibration gain. The data is hierarchical: samples belong to
+tracks, and tracks to urban areas. Records were filtered by
+spatio-temporal quality criteria and accuracy thresholds, and timestamps
+corrected to local time.
 
 ## Approach
 
