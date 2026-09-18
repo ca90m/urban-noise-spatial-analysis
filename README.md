@@ -140,3 +140,8 @@ of points. Model-wide R² ranges from 0.74 to 0.81.
 Analysis and maps in this repository: Cristian Antonio.
 Part of a two-person final project for the Spatial Statistics course at
 Universidad de Buenos Aires (2025), together with Ezequiel Grenat.
+
+## Data licence
+
+Noise data from the NoiseCapture project (Noise-Planet, UMRAE and
+Lab-STICC), used under the Open Database License (ODbL).
