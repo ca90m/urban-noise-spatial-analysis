@@ -25,15 +25,17 @@ corrected to local time.
 
 ## Approach
 
-**Spatial dependence.** Moran's I and LISA showed both global
-autocorrelation and relationships that vary across space, which rules
-out a global OLS model.
+**Spatial dependence.** Moran's I and LISA showed global spatial
+autocorrelation and local clusters in noise levels. GWR was used to
+explore how the associations with speed and movement direction varied
+across the study areas.
 
 **Local regression.** Geographically Weighted Regression with two
 specifications of movement direction: directional (0–360°) and axial
-(0° ≡ 180°). The axial form follows from the physics: relative speed and
-direction affect measured noise regardless of which way the source
-travels. Area-level variables were added to capture local context.
+(0° ≡ 180°). The axial specification treats opposite headings as
+equivalent. It was included to examine whether noise patterns were
+better represented by the axis of movement than by its direction.
+Area-level variables were added to capture local context.
 
 **Handling device calibration.** Tracks are not a useful grouping for
 context, since samples from one track can be far apart in space and
@@ -77,10 +79,10 @@ Gandhinagar, against +1.1 in Geneva in both periods. Orientation carries
 four to six times more weight there. The axial model won selection only
 in Geneva at night, where it also left the cleanest residuals of the
 four cases (Moran's I on residuals 0.08, against 0.19 to 0.24
-elsewhere). Where the directional effect is small, folding the angle
-costs little and gains parsimony.
+elsewhere). Both specifications use the same number of predictors and
+interaction terms, differing in how movement direction is represented.
 
-**Opposite weekend signatures, widening at night.**
+**Weekend effects differed between cities and were larger at night.**
 
 | | locations | median β_weekend | dominant pattern |
 |---|---|---|---|
@@ -91,10 +93,11 @@ costs little and gains parsimony.
 
 In daytime Gandhinagar the median effect is essentially zero, yet 70% of
 locations show a distinguishable one, split evenly between quieter and
-louder weekends along different corridors. A global model finds no
-weekend effect there because the two cancel out.
+louder weekends along different corridors. The local estimates show
+opposite weekend patterns within the city, which are not captured by the
+near-zero median effect.
 
-**The labelling separates model performance.** Urban-canyon locations
+**Model fit varied across the assigned labels.** Urban-canyon locations
 fit best (median |residual| 1.7 to 1.8 dB, local R² up to 0.95 at night)
 and speed-dominant worst among the regular regimes (R² 0.68). The
 anomalous class isolates median residuals of 14.7 to 15.6 dB in under 2%
