@@ -15,13 +15,14 @@ weekday/weekend.
 Built with leaflet in R. They open in any browser, no installation needed.
 Layer controls and popups can be switched between Spanish and English.
 
+
 ## Data
 
 Mobile noise measurements with sound level, speed, heading, GPS accuracy
-and a device calibration gain. The data is hierarchical: samples belong
-to tracks, and tracks to urban areas. Records were filtered by
-spatio-temporal quality criteria and accuracy thresholds, and timestamps
-corrected to local time.
+and a device calibration gain, from the NoisePlanet / NoiseCapture open
+dataset. The data is hierarchical: samples belong to tracks, and tracks
+to urban areas. Records were filtered by spatio-temporal quality
+criteria and accuracy thresholds, and timestamps corrected to local time.
 
 ## Approach
 
