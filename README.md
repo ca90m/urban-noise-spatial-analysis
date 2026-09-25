@@ -37,12 +37,26 @@ autocorrelation and local clusters in noise levels. GWR was used to
 explore how the associations with speed and movement direction varied
 across the study areas.
 
-**Local regression.** Geographically Weighted Regression with two
-specifications of movement direction: directional (0–360°) and axial
-(0° ≡ 180°). The axial specification treats opposite headings as
-equivalent. It was included to examine whether noise patterns were
-better represented by the axis of movement than by its direction.
-Area-level variables were added to capture local context.
+**Local regression.** Geographically Weighted Regression (GWR) was fitted with
+two representations of heading: directional (0–360°), which distinguishes
+opposite directions of travel, and axial (0° ≡ 180°), which treats them as
+equivalent. The comparison aimed to assess whether noise levels were mainly
+associated with the axis of movement or whether distinguishing the direction
+of travel added information. Area-level variables were also included to
+represent local context.
+
+Street geometry and sound reflections between façades motivated examining
+patterns associated with the axis of travel. Differences in exposure to sound
+sources and variation in sound emission across directions could also produce
+differences between opposite directions of travel. The possible role of the
+Doppler effect was also considered, linked to relative motion between source
+and receiver and the change in the received frequency.
+
+The recorded heading describes the movement of the person taking the
+measurements and does not directly identify the direction from which sound
+arrives. The comparison therefore helps assess which representation of heading
+is more useful, although differences in model fit alone cannot identify the
+physical mechanisms behind the observed patterns.
 
 **Handling device calibration.** Tracks are not a useful grouping for
 context, since samples from one track can be far apart in space and

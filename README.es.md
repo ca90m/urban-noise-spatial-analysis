@@ -39,11 +39,24 @@ ruido. Se utilizó GWR para explorar cómo variaban las asociaciones con la
 velocidad y la dirección del movimiento dentro de las áreas de estudio.
 
 **Regresión local.** Se aplicó regresión geográficamente ponderada (GWR) con
-dos especificaciones de la dirección del movimiento: direccional (0–360°) y
-axial (0° ≡ 180°). La especificación axial considera equivalentes los rumbos
-opuestos. Se incluyó para examinar si los patrones de ruido se representaban
-mejor mediante el eje del movimiento que mediante su sentido. Se agregaron
-variables a nivel de área para incorporar el contexto local.
+dos representaciones del rumbo: direccional (0–360°), que distingue sentidos
+opuestos, y axial (0° ≡ 180°), que los considera equivalentes. La comparación
+buscó evaluar si el nivel de ruido se asociaba principalmente con el eje del
+desplazamiento o si distinguir su sentido aportaba información. También se
+incorporaron variables a nivel de área para representar el contexto local.
+
+La geometría de las calles y las reflexiones del sonido entre fachadas
+motivaron considerar patrones asociados con el eje de circulación. A su vez,
+las diferencias de exposición a las fuentes y la emisión desigual de sonido
+según la dirección podrían generar diferencias entre sentidos. También se
+consideró el posible papel del efecto Doppler, ligado al movimiento relativo
+entre fuente y receptor y al cambio en la frecuencia recibida.
+
+El rumbo registrado corresponde al desplazamiento de quien mide y no
+identifica directamente la dirección de llegada del sonido. Por eso, la
+comparación permite evaluar qué representación del rumbo resulta más útil,
+aunque las diferencias de ajuste no permiten identificar por sí solas los
+mecanismos físicos que originan los patrones observados.
 
 **Tratamiento de la calibración de los dispositivos.** Los recorridos no son
 una agrupación útil para representar el contexto, porque las muestras de un
