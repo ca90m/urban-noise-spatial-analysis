@@ -1,5 +1,7 @@
 # Spatial structure of urban noise
 
+**English** | [Español](README.es.md)
+
 Can urban traffic dynamics be inferred from the spatial structure of
 noise levels? This project analyzes crowdsourced noise measurements in
 Geneva (Switzerland) and Gandhinagar (India), across day/night and
@@ -133,7 +135,9 @@ of points. Model-wide R² ranges from 0.74 to 0.81.
 
 ## Contents
 
-- `*.html` — standalone interactive maps
+- `README.md`: project overview in English
+- `README.es.md`: project overview in Spanish
+- `*.html`: standalone interactive maps
 
 ## Authors
 
