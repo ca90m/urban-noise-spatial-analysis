@@ -161,7 +161,7 @@ residuos en función de la ganancia permitió estimar un sesgo, que se restó
 antes de volver a centrar los residuos:
 
 ```math
-r^{\text{db}}_i = r_i - \hat b(g_i) - \operatorname{mediana}\big(r - \hat b(g)\big)
+r^{\text{db}}_i = r_i - \hat b(g_i) - \mathrm{mediana}\big(r - \hat b(g)\big)
 ```
 
 Segundo, como la varianza seguía difiriendo según la ganancia, se calcularon

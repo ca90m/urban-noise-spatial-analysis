@@ -153,7 +153,7 @@ This was handled in two steps. First, a robust LOESS $\hat b(g)$ of residual
 on gain gives a bias estimate that is subtracted and re-centred:
 
 ```math
-r^{\text{db}}_i = r_i - \hat b(g_i) - \operatorname{median}\big(r - \hat b(g)\big)
+r^{\text{db}}_i = r_i - \hat b(g_i) - \mathrm{median}\big(r - \hat b(g)\big)
 ```
 
 Second, since variance still differs by gain level, anomaly thresholds were
