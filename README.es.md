@@ -212,8 +212,8 @@ punto recibe la primera que cumple:
 
 1. **Anómalo / a revisar**: cumple el criterio de anomalías descrito en la
    sección de calibración.
-2. **Predominio de la velocidad**: hay un efecto fuerte y $s_i / a_i > 1.2$.
-3. **Cañón urbano / direccional**: hay un efecto fuerte y $s_i / a_i < 1/1.2$.
+2. **Predominio de la velocidad**: hay un efecto fuerte y $s_i / a_i \gt 1.2$.
+3. **Cañón urbano / direccional**: hay un efecto fuerte y $s_i / a_i \lt 1/1.2$.
 4. **Base estacionaria**: el intercepto supera su percentil 75, o $\beta_{\text{base}}$
    supera la mediana de $\lvert \beta_{\text{base}} \rvert$ más su MAD; y ni la velocidad ni la
    alineación superan su percentil 75.
@@ -256,6 +256,8 @@ valores de 0.05 a 0.27 en los demás). Ambas especificaciones utilizan la misma
 cantidad de predictores y términos de interacción; difieren en cómo
 representan la dirección del movimiento.
 
+![Efecto del rumbo por caso](figures/alineacion_es.png)
+
 **Los efectos del fin de semana difirieron entre ciudades y fueron mayores
 durante la noche.** Como $\beta_{\text{weekend}}$ se ajusta por el perfil del área por tipo de
 día, no representa la diferencia total entre fines de semana y días hábiles.
@@ -297,6 +299,8 @@ anterior.
 | Gandhinagar, noche | 579 | −4.4 dB | −5.7 dB | 96% |
 | Ginebra, día | 141 | −0.5 dB | +2.7 dB | 66% |
 | Ginebra, noche | 133 | +1.5 dB | +3.7 dB | 99% |
+
+![Sensibilidad del efecto de fin de semana al nivel base](figures/sensibilidad_finde_es.png)
 
 En Gandhinagar y en Ginebra de noche, el signo del coeficiente se mantuvo en
 aproximadamente el 96% o más de las ubicaciones comunes. En ese subconjunto
@@ -384,6 +388,13 @@ exploratorias, no efectos causales.
   resultados se interpretan como asociaciones exploratorias, no como efectos
   causales ni como una validación predictiva fuera de muestra.
 
+- En Gandhinagar de noche, el 16% de las ubicaciones tiene una amplitud del
+  efecto del rumbo mayor a 20 dB, y algunas superan los 70 dB. Esos valores son
+  poco plausibles como efecto físico y probablemente reflejan regresiones
+  locales poco estables, con pocos vecinos y rumbos muy ligados a cada
+  corredor. Las medianas no se ven afectadas, pero los valores de esas zonas en
+  el mapa deben leerse con cautela.
+
 - Las estimaciones locales de GWR están correlacionadas espacialmente.
   Por eso, $\lvert z \rvert \ge 2$ señala ubicaciones que merecen atención, sin constituir
   pruebas de significación independientes.
@@ -393,6 +404,7 @@ exploratorias, no efectos causales.
 - `README.md`: resumen en inglés.
 - `README.es.md`: resumen en español.
 - `*.html`: mapas interactivos autocontenidos.
+- `figures/`: gráficos del README.
 
 ## Autores
 

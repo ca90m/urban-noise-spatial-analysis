@@ -203,8 +203,8 @@ and each point gets the first one it meets:
 
 1. **Anomalous / review**: meets the anomaly criterion under device
    calibration.
-2. **Speed-dominant**: a strong effect and $s_i / a_i > 1.2$.
-3. **Urban canyon / directional**: a strong effect and $s_i / a_i < 1/1.2$.
+2. **Speed-dominant**: a strong effect and $s_i / a_i \gt 1.2$.
+3. **Urban canyon / directional**: a strong effect and $s_i / a_i \lt 1/1.2$.
 4. **Stationary base**: the intercept exceeds its 75th percentile, or $\beta_{\text{base}}$
    exceeds the median of $\lvert \beta_{\text{base}} \rvert$ plus its MAD; and neither speed nor
    alignment exceeds its 75th percentile.
@@ -240,6 +240,8 @@ selection only in Geneva at night, where it also left the cleanest residuals
 of the four cases (Moran's I on residuals 0.01, against 0.05 to 0.27
 elsewhere). Both specifications use the same number of predictors and
 interaction terms, differing in how movement direction is represented.
+
+![Heading effect by case](figures/alineacion_en.png)
 
 **Weekend effects differed between cities and were larger at night.** Since
 $\beta_{\text{weekend}}$ is adjusted for the area's profile by type of day, it does not
@@ -280,6 +282,8 @@ differ from those in the previous table.
 | Gandhinagar, night | 579 | −4.4 dB | −5.7 dB | 96% |
 | Geneva, day | 141 | −0.5 dB | +2.7 dB | 66% |
 | Geneva, night | 133 | +1.5 dB | +3.7 dB | 99% |
+
+![Sensitivity of the weekend effect to the baseline level](figures/sensibilidad_finde_en.png)
 
 In Gandhinagar and in Geneva at night, the coefficient kept its sign in
 roughly 96% or more of the common locations. Within that subset, Gandhinagar
@@ -362,6 +366,12 @@ The findings describe exploratory associations, not causal effects.
   associations, not as causal effects or out-of-sample predictive
   validation.
 
+- In nighttime Gandhinagar, 16% of locations have a heading-effect amplitude
+  above 20 dB, and some exceed 70 dB. Such values are implausible as a physical
+  effect and probably reflect unstable local regressions, with few neighbours
+  and headings closely tied to each corridor. Medians are unaffected, but map
+  values in those areas should be read with caution.
+
 - GWR local estimates are spatially correlated, so $\lvert z \rvert \ge 2$ flags
   locations worth attention rather than independent significance tests.
 
@@ -370,6 +380,7 @@ The findings describe exploratory associations, not causal effects.
 - `README.md`: project overview in English
 - `README.es.md`: project overview in Spanish
 - `*.html`: standalone interactive maps
+- `figures/`: README figures
 
 ## Authors
 
