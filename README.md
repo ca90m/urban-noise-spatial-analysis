@@ -113,16 +113,18 @@ with AICc as tie-breaker.
 NoiseCapture publishes, for each hexagon of 15 m radius, an hourly sound-level
 profile (the median, LA50, of each hour on weekdays, Saturdays and Sundays).
 That profile could serve as a control for local context, but it is computed
-from the same crowdsourced measurements being modelled. To measure how much of
-its contribution was information about the place and how much was the
-measurement itself, an alternative profile was built from the raw points,
-excluding for each point every measurement from its own track. Three versions
-of the model were compared on the same observations and with the same
-weights: no baseline, the profile without the own track, and the NoiseCapture
-profile. The results (see Findings) led to excluding it from the main model.
-The version with the NoiseCapture profile is kept as a sensitivity analysis,
-with the same observations, heading encoding and spatial weights as the main
-model.
+from the same crowdsourced measurements being modelled. To assess how much the
+fit depended on measurements from the point's own track, an alternative
+profile was built from the raw points: for each point, the median of its
+hexagon, hour and type of day, excluding every measurement from its own track.
+When no other track had measurements in that combination of hour and type of
+day, the overall median of the hexagon was used, also excluding the evaluated
+track. Three versions of the model were compared on the same observations and
+with the same weights: no baseline, the profile without the own track, and
+the NoiseCapture profile. The results (see Findings) led to excluding it from
+the main model. The version with the NoiseCapture profile is kept as a
+sensitivity analysis, with the same observations, heading encoding and spatial
+weights as the main model.
 
 **Alignment coefficient.** The heading effect is summarized as one value per
 location:
@@ -221,8 +223,8 @@ each threshold is a within-bin percentile. As an additional diagnostic, the
 Spearman correlation between each track's median gain and its share of
 anomalous points was computed. It was weak in three cases (−0.11 to +0.01;
 p ≥ 0.38). In nighttime Gandhinagar it was +0.26 (p = 0.015): there,
-higher-gain tracks tend to have more anomalies. With four tests, that
-correlation does not survive a multiple-comparison correction. The maps keep
+higher-gain tracks tend to have more anomalies. With a Bonferroni correction for the four tests
+(threshold 0.0125), that correlation is not significant. The maps keep
 the separate layers so the difference can be inspected directly.
 
 **The directional term weighs much more in Gandhinagar than in Geneva.** The
@@ -246,6 +248,10 @@ differing in how movement direction is represented.
 | Geneva, day | 122 | +2.0 dB | 53% louder, 7% quieter |
 | Geneva, night | 108 | +7.0 dB | no location with $\lvert z \rvert \ge 2$ |
 
+Percentages of quieter and louder locations refer to estimates reaching
+$\lvert z \rvert \ge 2$ among the reported locations, not just to the sign of
+the coefficient.
+
 **How $\beta_{\text{weekend}}$ is estimated and filtered.** It is the
 coefficient on the weekend indicator: the local weekend-minus-weekday
 difference, in dB, adjusted for the other model terms. It is reported only
@@ -261,42 +267,50 @@ along different corridors. At night, by contrast, the decrease clearly
 dominates. In nighttime Geneva the median is high, but no location reaches
 $\lvert z \rvert \ge 2$: the estimated effect is large and imprecise.
 
-**In Geneva, the area baseline level largely reused the measurements
-themselves.** When the own track is excluded, many points are left with no
-other measurement in their hexagon:
+**Model fit was sensitive to how the baseline level was built.** When the own
+track is excluded, many points are left with no other measurement in their
+hexagon:
 
 | Situation when the own track is excluded | Geneva, day | Geneva, night | Gandhinagar, day |
 |---|---|---|---|
 | Other tracks in the hexagon, at the same hour and type of day | 3% | 5% | 28% |
-| Other tracks in the hexagon, only at other hours | 36% | 35% | 47% |
+| Other tracks in the hexagon, outside that combination of hour and type of day | 36% | 35% | 47% |
 | No other track in the hexagon | 61% | 60% | 25% |
 
-In Gandhinagar, percentages refer to points falling inside some hexagon. In
-Geneva, for most points the NoiseCapture profile was built from their own track
-alone. On the points that do have other tracks in their hexagon (957 in
-daytime Geneva and 2462 in daytime Gandhinagar), the three model versions gave:
+In Gandhinagar, percentages refer to points falling inside some hexagon. In the
+raw points available for Geneva, most observations do not share their hexagon
+with other tracks. On the points that do (957 in daytime Geneva and 2462 in
+daytime Gandhinagar), the three model versions gave:
 
 ![Evaluation of the area baseline level](figures/evaluacion_nivel_base_en.png)
 
-In daytime Geneva, most of the NoiseCapture profile's contribution disappears
-once the own track is excluded: mean local R² goes from 0.71 to 0.41, against
-0.24 with no baseline, and residual Moran's I rises from 0.20 to 0.55 (0.67
-with no baseline). In daytime Gandhinagar, the three versions fit almost
-equally well (0.61 to 0.64, with Moran's I of 0.32 to 0.33): there the
-baseline adds little. The comparison was run only for these two cases; it was
-not evaluated for nighttime Gandhinagar.
+In daytime Geneva, on the common sample, mean local R² was 0.24 with no
+baseline, 0.41 with the reference excluding the own track and 0.71 with the
+NoiseCapture profile; residual Moran's I was 0.67, 0.55 and 0.20. The
+difference is consistent with a substantial dependence on the measurements of
+the point's own track, but it also reflects changes in the availability and
+temporal resolution of the predictor: for most of these points, the
+alternative reference is the overall median of the hexagon, not that of the
+hour. The comparison cannot quantify these components separately. In daytime
+Gandhinagar, the three versions fit almost equally well (0.61 to 0.64, with
+Moran's I of 0.32 to 0.33): there the baseline adds little. The comparison was
+run only for these two cases; it was not evaluated for nighttime Gandhinagar.
 
 **The sensitivity analysis with the baseline confirms that contrast.** The
 table compares the main model with the version including the baseline, on the
-same observations and with the same spatial weights. The weekend columns use
-locations admissible in both versions.
+same observations and with the same spatial weights.
 
-| | mean local R² (without / with) | residual Moran's I (without / with) | median $\beta_{\text{weekend}}$ (without / with) | same sign |
-|---|---|---|---|---|
-| Gandhinagar, day | 0.68 / 0.72 | 0.30 / 0.28 | −0.2 / −1.5 dB | 96% |
-| Gandhinagar, night | 0.76 / 0.81 | 0.21 / 0.13 | −6.4 / −4.1 dB | 98% |
-| Geneva, day | 0.54 / 0.83 | 0.54 / 0.06 | +2.0 / −0.5 dB | 73% |
-| Geneva, night | 0.60 / 0.85 | 0.30 / −0.01 | +7.0 / +2.5 dB | 85% |
+| | mean local R² (without / with) | residual Moran's I (without / with) | common locations | median $\beta_{\text{weekend}}$ (without / with) | same sign |
+|---|---|---|---|---|---|
+| Gandhinagar, day | 0.68 / 0.72 | 0.30 / 0.28 | 906 | −0.2 / −1.5 dB | 96% |
+| Gandhinagar, night | 0.76 / 0.81 | 0.21 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
+| Geneva, day | 0.54 / 0.83 | 0.54 / 0.06 | 122 | +2.0 / −0.5 dB | 73% |
+| Geneva, night | 0.60 / 0.85 | 0.30 / −0.01 | 108 | +7.0 / +2.5 dB | 85% |
+
+Mean local R² and Moran's I refer to each case's fitting sample. Weekend
+medians and sign-agreement percentages are computed only on locations meeting
+the reporting filters in both versions, including the ±12 dB limit. They do not
+represent all estimates or the whole city.
 
 In Gandhinagar, adding the baseline improves fit only slightly and the weekend
 effect keeps its sign at almost every location; the nighttime decrease holds
@@ -319,14 +333,15 @@ points. Mean local R² ranges from 0.54 to 0.76.
 
 In Gandhinagar, where most measurements were taken at vehicle speeds, noise is
 strongly tied to movement: depending on heading, the level changes by about 10
-to 14 dB at mean speed. This pattern is consistent with traffic corridors with
-marked directions of travel, although it could also reflect the vehicle's own
-noise or street geometry. The nighttime weekend decrease is the most stable
-temporal result: it appears at most locations and holds with and without the
-area baseline level.
+to 14 dB at mean speed. This pattern is consistent with marked axes or corridors of
+traffic movement, although it could also reflect the vehicle's own
+noise or street geometry. The nighttime weekend decrease appears at most locations, and the
+predominance of negative nighttime coefficients held when the baseline level
+was added, among locations retained in both versions.
 
-In Geneva, where measurements were mostly taken on foot, heading matters about
-three times less and the model explains a smaller share of the variation.
+In Geneva, speeds were predominantly consistent with walking by day, while
+the nighttime period showed a broader mix. There, heading matters about three
+times less and the model explains a smaller share of the variation.
 Weekends tend to be louder, but that result depends on how local context is
 controlled for, and at night it is imprecise.
 
@@ -379,8 +394,9 @@ describe associations, not causal effects.
   or out-of-sample predictive validation.
 
 - In nighttime Gandhinagar, 3% of locations have a heading-effect amplitude
-  above 20 dB (maximum 34 dB), implausible as a physical effect. Medians are
-  unaffected, but map values in those areas should be read with caution.
+  above 20 dB (maximum 34 dB). Extreme amplitudes call for caution and are not
+  read directly as physical noise differences. The figure limits the visible
+  range to 25 dB, but summaries are computed with all estimates.
 
 - GWR local estimates are spatially correlated, so $\lvert z \rvert \ge 2$ flags
   locations worth attention rather than independent significance tests.

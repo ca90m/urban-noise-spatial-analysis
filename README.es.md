@@ -114,16 +114,19 @@ R² local medio; ante un empate, la de menor AICc.
 publica, para cada hexágono de 15 m de radio, un perfil horario del nivel
 sonoro (la mediana, LA50, de cada hora en días hábiles, sábados y domingos).
 Ese perfil podría servir como control del contexto del lugar, pero se calcula
-con las mismas mediciones colaborativas que se modelan. Para medir cuánto de su
-aporte era información del lugar y cuánto la propia medición, se calculó un
-perfil alternativo a partir de los puntos crudos, excluyendo para cada punto
-todas las mediciones de su mismo recorrido. Se compararon tres versiones del
-modelo sobre las mismas observaciones y con los mismos pesos: sin nivel base,
-con el perfil sin el propio recorrido y con el perfil de NoiseCapture. Los
-resultados (ver Resultados) llevaron a excluirlo del modelo principal. La
-versión con el perfil de NoiseCapture se conserva como análisis de
-sensibilidad, con las mismas observaciones, la misma codificación del rumbo y
-los mismos pesos espaciales que el modelo principal.
+con las mismas mediciones colaborativas que se modelan. Para evaluar cuánto
+dependía el ajuste de las mediciones del propio recorrido, se calculó un
+perfil alternativo a partir de los puntos crudos: para cada punto, la mediana
+de su hexágono, hora y tipo de día, excluyendo todas las mediciones de su mismo
+recorrido. Cuando no había mediciones de otros recorridos en esa combinación de
+hora y tipo de día, se utilizó la mediana general del hexágono, también
+excluyendo el recorrido evaluado. Se compararon tres versiones del modelo
+sobre las mismas observaciones y con los mismos pesos: sin nivel base, con el
+perfil sin el propio recorrido y con el perfil de NoiseCapture. Los resultados
+(ver Resultados) llevaron a excluirlo del modelo principal. La versión con el
+perfil de NoiseCapture se conserva como análisis de sensibilidad, con las
+mismas observaciones, la misma codificación del rumbo y los mismos pesos
+espaciales que el modelo principal.
 
 **Coeficiente de alineación.** El efecto del rumbo se resume en un solo valor
 por ubicación:
@@ -232,8 +235,8 @@ diagnóstico adicional, se calculó la correlación de Spearman entre la gananci
 mediana de cada recorrido y su proporción de puntos anómalos. Fue débil en
 tres casos (de −0.11 a +0.01; p ≥ 0.38). En Gandhinagar de noche fue de +0.26
 (p = 0.015): allí, los recorridos con más ganancia tienden a tener más
-anómalos. Con cuatro pruebas, esa correlación no resiste una corrección por
-comparaciones múltiples. Los mapas conservan las distintas capas para poder
+anómalos. Con una corrección de Bonferroni para las cuatro pruebas (umbral de
+0.0125), esa correlación no resulta significativa. Los mapas conservan las distintas capas para poder
 compararlas directamente.
 
 **El término direccional pesa mucho más en Gandhinagar que en Ginebra.** La
@@ -260,6 +263,10 @@ durante la noche.**
 | Ginebra, día | 122 | +2.0 dB | 53% con más ruido, 7% con menos ruido |
 | Ginebra, noche | 108 | +7.0 dB | Ninguna ubicación con $\lvert z \rvert \ge 2$ |
 
+Los porcentajes de ubicaciones con más o menos ruido corresponden a estimaciones
+que alcanzan $\lvert z \rvert \ge 2$ entre las ubicaciones informadas, no solo
+al signo del coeficiente.
+
 **Cómo se estima y filtra $\beta_{\text{weekend}}$.** Es el coeficiente del
 indicador de fin de semana: la diferencia local de nivel entre fines de semana
 y días hábiles, en dB, ajustada por los demás términos del modelo. Solo se
@@ -277,43 +284,53 @@ noche, en cambio, predomina claramente la disminución. En Ginebra de noche la
 mediana es alta, pero ninguna ubicación alcanza $\lvert z \rvert \ge 2$: el
 efecto estimado es grande e impreciso.
 
-**En Ginebra, el nivel base del área reutilizaba en buena parte las propias
-mediciones.** Al excluir el propio recorrido, muchos puntos se quedan sin
-ninguna otra medición en su hexágono:
+**El ajuste fue sensible a cómo se construyó el nivel base.** Al excluir el
+propio recorrido, muchos puntos se quedan sin ninguna otra medición en su
+hexágono:
 
 | Situación al excluir el propio recorrido | Ginebra, día | Ginebra, noche | Gandhinagar, día |
 |---|---|---|---|
-| Otros recorridos en su hexágono, a esa hora y tipo de día | 3% | 5% | 28% |
-| Otros recorridos en su hexágono, solo a otras horas | 36% | 35% | 47% |
+| Otros recorridos en su hexágono, en la misma hora y tipo de día | 3% | 5% | 28% |
+| Otros recorridos en su hexágono, fuera de esa combinación de hora y tipo de día | 36% | 35% | 47% |
 | Ningún otro recorrido en su hexágono | 61% | 60% | 25% |
 
 En Gandhinagar, los porcentajes se calculan sobre los puntos que caen dentro de
-algún hexágono. En Ginebra, para la mayoría de los puntos el perfil de
-NoiseCapture se construyó solo con su propio recorrido. Sobre los puntos que sí
-tienen otros recorridos en su hexágono (957 en Ginebra de día y 2462 en
-Gandhinagar de día), las tres versiones del modelo dieron:
+algún hexágono. En los puntos crudos disponibles de Ginebra, la mayoría de las
+observaciones no comparte su hexágono con otros recorridos. Sobre los puntos
+que sí lo comparten (957 en Ginebra de día y 2462 en Gandhinagar de día), las
+tres versiones del modelo dieron:
 
 ![Evaluación del nivel base del área](figures/evaluacion_nivel_base_es.png)
 
-En Ginebra de día, la mayor parte del aporte del perfil de NoiseCapture
-desaparece al excluir el propio recorrido: el R² local medio pasa de 0.71 a
-0.41, frente a 0.24 sin nivel base, y el I de Moran de los residuos sube de
-0.20 a 0.55 (0.67 sin nivel base). En Gandhinagar de día, las tres versiones
-ajustan casi igual (0.61 a 0.64, con un I de Moran de 0.32 a 0.33): allí el
-nivel base aporta poco. La comparación se hizo solo en estos dos casos; en
-Gandhinagar de noche no se evaluó.
+En Ginebra de día, sobre la muestra común, el R² local medio fue 0.24 sin
+nivel base, 0.41 con la referencia que excluye el propio recorrido y 0.71 con
+el perfil de NoiseCapture; el I de Moran de los residuos fue 0.67, 0.55 y 0.20.
+La diferencia es compatible con una dependencia importante respecto de las
+mediciones del propio recorrido, pero también refleja cambios en la
+disponibilidad y la resolución temporal del predictor: para la mayoría de
+estos puntos, la referencia alternativa es la mediana general del hexágono, no
+la de esa hora. La comparación no permite cuantificar por separado esos
+componentes. En Gandhinagar de día, las tres versiones ajustan casi igual (0.61
+a 0.64, con un I de Moran de 0.32 a 0.33): allí el nivel base aporta poco. La
+comparación se hizo solo en estos dos casos; en Gandhinagar de noche no se
+evaluó.
 
 **La sensibilidad con el nivel base confirma ese contraste.** La tabla compara
 el modelo principal con la versión con nivel base, con las mismas
-observaciones y los mismos pesos espaciales. Las columnas de fin de semana
-usan las ubicaciones admisibles en ambas versiones.
+observaciones y los mismos pesos espaciales.
 
-| | R² local medio (sin / con) | I de Moran de los residuos (sin / con) | Mediana de $\beta_{\text{weekend}}$ (sin / con) | Mismo signo |
-|---|---|---|---|---|
-| Gandhinagar, día | 0.68 / 0.72 | 0.30 / 0.28 | −0.2 / −1.5 dB | 96% |
-| Gandhinagar, noche | 0.76 / 0.81 | 0.21 / 0.13 | −6.4 / −4.1 dB | 98% |
-| Ginebra, día | 0.54 / 0.83 | 0.54 / 0.06 | +2.0 / −0.5 dB | 73% |
-| Ginebra, noche | 0.60 / 0.85 | 0.30 / −0.01 | +7.0 / +2.5 dB | 85% |
+| | R² local medio (sin / con) | I de Moran de los residuos (sin / con) | Ubicaciones comunes | Mediana de $\beta_{\text{weekend}}$ (sin / con) | Mismo signo |
+|---|---|---|---|---|---|
+| Gandhinagar, día | 0.68 / 0.72 | 0.30 / 0.28 | 906 | −0.2 / −1.5 dB | 96% |
+| Gandhinagar, noche | 0.76 / 0.81 | 0.21 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
+| Ginebra, día | 0.54 / 0.83 | 0.54 / 0.06 | 122 | +2.0 / −0.5 dB | 73% |
+| Ginebra, noche | 0.60 / 0.85 | 0.30 / −0.01 | 108 | +7.0 / +2.5 dB | 85% |
+
+El R² local medio y el I de Moran corresponden a la muestra de ajuste de cada
+caso. Las medianas del coeficiente de fin de semana y los porcentajes de
+conservación del signo se calculan únicamente sobre las ubicaciones que cumplen
+los filtros de presentación en ambas versiones, incluido el límite de ±12 dB.
+No representan todas las estimaciones ni toda la ciudad.
 
 En Gandhinagar, agregar el nivel base mejora poco el ajuste y el efecto de fin
 de semana conserva su signo en casi todas las ubicaciones; la disminución
@@ -339,14 +356,16 @@ local medio del modelo varía entre 0.54 y 0.76.
 En Gandhinagar, donde la mayoría de las mediciones se tomó a velocidad de
 vehículo, el ruido aparece fuertemente ligado al movimiento: según el rumbo, el
 nivel cambia unos 10 a 14 dB a velocidad media. Ese patrón es compatible con
-corredores de tránsito con sentidos de circulación marcados, aunque también
+ejes o corredores de desplazamiento con tránsito marcado, aunque también
 podría reflejar el ruido del propio vehículo o la geometría de las calles. La
-disminución nocturna de fin de semana es el resultado temporal más estable: se
-observa en la mayoría de las ubicaciones y se mantiene con y sin el nivel base
-del área.
+disminución nocturna de fin de semana se observa en la mayoría de las
+ubicaciones, y el predominio de coeficientes negativos durante la noche se
+mantuvo al incorporar el nivel base, sobre las ubicaciones admitidas en ambas
+versiones.
 
-En Ginebra, donde se midió mayormente a pie, el rumbo pesa unas tres veces
-menos y el modelo explica una parte menor de la variación. El fin de semana
+En Ginebra, las velocidades fueron predominantemente compatibles con
+desplazamientos a pie durante el día, mientras que la franja nocturna presentó
+una mezcla mayor. Allí el rumbo pesa unas tres veces menos y el modelo explica una parte menor de la variación. El fin de semana
 tiende a ser más ruidoso, pero ese resultado depende de cómo se controle el
 contexto del lugar, y de noche es impreciso.
 
@@ -403,9 +422,10 @@ los resultados describen asociaciones, no efectos causales.
   fuera de muestra.
 
 - En Gandhinagar de noche, el 3% de las ubicaciones tiene una amplitud del
-  efecto del rumbo mayor a 20 dB (máximo 34 dB), poco plausible como efecto
-  físico. Las medianas no se ven afectadas, pero los valores de esas zonas en
-  el mapa deben leerse con cautela.
+  efecto del rumbo mayor a 20 dB (máximo 34 dB). Las amplitudes extremas
+  requieren cautela y no se interpretan directamente como diferencias físicas
+  de ruido. La figura limita el rango visual a 25 dB, pero los resúmenes se
+  calculan con todas las estimaciones.
 
 - Las estimaciones locales de GWR están correlacionadas espacialmente.
   Por eso, $\lvert z \rvert \ge 2$ señala ubicaciones que merecen atención, sin constituir
