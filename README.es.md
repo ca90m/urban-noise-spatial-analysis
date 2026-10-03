@@ -7,6 +7,27 @@ espacial de los niveles de ruido? Este proyecto analiza mediciones de ruido
 recolectadas de forma colaborativa en Ginebra (Suiza) y Gandhinagar (India),
 comparando día y noche, y días de semana y fines de semana.
 
+![Mediciones de ruido en Ginebra](figures/portada_es.jpg)
+
+*Mediciones de NoiseCapture en Ginebra, coloreadas por nivel de ruido.*
+
+## En resumen
+
+- **El rumbo pesa unas tres veces más en Gandhinagar que en Ginebra.** A
+  velocidad media, el nivel cambia típicamente entre 10 y 14 dB según el rumbo
+  en Gandhinagar, y entre 3 y 5 dB en Ginebra.
+- **En Gandhinagar, las noches de fin de semana son más silenciosas en la
+  mayoría de las ubicaciones** (mediana de −6.4 dB), y ese patrón se mantiene
+  con y sin el nivel base del área.
+- **El perfil horario de NoiseCapture resultó poco confiable como control en
+  Ginebra.** La mayoría de los puntos no comparte su hexágono con otros
+  recorridos, y el ajuste dependía mucho de cómo se construía ese perfil. Por
+  eso el modelo principal no lo incluye.
+- **Las ciudades se midieron de forma distinta,** mayormente en vehículo en
+  Gandhinagar y mayormente a pie en Ginebra de día. Por eso la comparación se
+  limita a la estructura espacial y temporal, y los resultados describen
+  asociaciones, no efectos causales.
+
 ## Mapas interactivos
 
 - [Gandhinagar: día](https://ca90m.github.io/urban-noise-spatial-analysis/gandhinagar_dia.html)

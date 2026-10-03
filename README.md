@@ -7,6 +7,26 @@ noise levels? This project analyzes crowdsourced noise measurements in
 Geneva (Switzerland) and Gandhinagar (India), across day/night and
 weekday/weekend.
 
+![Noise measurements in Geneva](figures/portada_en.jpg)
+
+*NoiseCapture measurements in Geneva, coloured by noise level.*
+
+## Summary
+
+- **Heading matters about three times more in Gandhinagar than in Geneva.** At
+  mean speed, the level typically changes by 10 to 14 dB with heading in
+  Gandhinagar, and by 3 to 5 dB in Geneva.
+- **In Gandhinagar, weekend nights are quieter at most locations** (median
+  −6.4 dB), and that pattern holds with and without the area baseline level.
+- **NoiseCapture's hourly profile proved unreliable as a control in Geneva.**
+  Most points do not share their hexagon with other tracks, and the fit
+  depended heavily on how that profile was built. The main model therefore
+  leaves it out.
+- **The cities were measured differently,** mostly from vehicles in
+  Gandhinagar and mostly on foot in daytime Geneva. Comparisons are therefore
+  limited to spatial and temporal structure, and the results describe
+  associations, not causal effects.
+
 ## Interactive maps
 
 - [Gandhinagar — daytime](https://ca90m.github.io/urban-noise-spatial-analysis/gandhinagar_dia.html)
