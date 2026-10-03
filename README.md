@@ -14,8 +14,8 @@ weekday/weekend.
 - [Geneva — daytime](https://ca90m.github.io/urban-noise-spatial-analysis/ginebra_dia.html)
 - [Geneva — nighttime](https://ca90m.github.io/urban-noise-spatial-analysis/ginebra_noche.html)
 
-The maps show the main models, which include the area's baseline level.
-Variants without that predictor were used for sensitivity analysis; their
+The maps show the main models, which do not include the area's baseline
+level. The version with that predictor was used for sensitivity analysis; its
 results are summarized below.
 
 Built with leaflet in R. They open in any browser, no installation needed.
@@ -46,8 +46,7 @@ two representations of heading: directional (0–360°), which distinguishes
 opposite directions of travel, and axial (0° ≡ 180°), which treats them as
 equivalent. The comparison aimed to assess whether noise levels were mainly
 associated with the axis of movement or whether distinguishing the direction
-of travel added information. Area-level variables were also included to
-represent local context.
+of travel added information.
 
 Street geometry and sound reflections between façades motivated examining
 patterns associated with the axis of travel. Differences in exposure to sound
@@ -71,7 +70,7 @@ L_i ={}& \beta_0(u_i) + \beta_{\text{speed}}(u_i)\,v_i
        + \beta_{\cos}(u_i)\,\tilde c_i + \beta_{\sin}(u_i)\,\tilde s_i
        + v_i\big[\gamma_{\cos}(u_i)\,\tilde c_i + \gamma_{\sin}(u_i)\,\tilde s_i\big] \\
       &+ \beta_{\text{hs}}(u_i)\,h^s_i + \beta_{\text{hc}}(u_i)\,h^c_i
-       + \beta_{\text{base}}(u_i)\,b_i + \beta_{\text{count}}(u_i)\,m_i
+       + \beta_{\text{count}}(u_i)\,m_i
        + \beta_{\text{weekend}}(u_i)\,w_i + \varepsilon_i
 \end{aligned}
 ```
@@ -86,20 +85,11 @@ told apart. The bracketed term lets the heading effect change with speed.
 
 The remaining terms are controls. $h^c_i$ and $h^s_i$ encode hour as the
 cosine and sine of $2\pi \cdot \text{hour}_i / 24$, so 23:00 and 00:00 stay
-close. $b_i$ is the area's usual level at that hour and on that type of day
-(Monday–Friday, Saturday or Sunday), from the NoiseCapture hourly profile (the
-median, LA50, of each hour), standardized. If that hour is missing, the area's
-overall median is used. $m_i$ is the log of
-one plus the
-area's measurement count, standardized. $w_i$ is a centred weekend indicator.
-
-Two of these controls enter residualized (i.e. orthogonalized). The hour sine
-is replaced by its residual from a linear regression on the cosine, and $b_i$
-by its residual from a regression on the hour sine and cosine. This is only a
-reparametrization: the fit, the residuals and $\beta_{\text{base}}$ are the same
-as without it. What changes is how effects are split across coefficients: the
-hour terms carry the full daily cycle, including the part associated with the
-area's usual level, and the intercept shifts its reference point.
+close. The sine enters residualized: it is replaced by its residual from a
+linear regression on the cosine (i.e. it is orthogonalized). This is only a
+reparametrization: the fit and the residuals do not change. $m_i$ is the log of
+one plus the measurement count of the NoiseCapture area containing the point,
+standardized. $w_i$ is a centred weekend indicator.
 
 How to read each coefficient:
 
@@ -109,10 +99,9 @@ How to read each coefficient:
 | $\beta_{\text{speed}}$ | dB change per standard deviation of speed, averaged over headings. Shown on the maps in dB per m/s. |
 | $\beta_{\cos}$, $\beta_{\sin}$ | Heading effect at mean speed. In the directional model, $\beta_{\cos}$ contrasts travelling north with travelling south, and $\beta_{\sin}$ east with west. In the axial model, $\beta_{\cos}$ contrasts the north–south axis with the east–west axis, and $\beta_{\sin}$ the northeast–southwest axis with the northwest–southeast one. In every case the gap between the two is twice the coefficient, and a positive value means the first is louder. On their own they depend on how the axes are oriented, so they are summarized as $\beta_{\text{align}}$. |
 | $\gamma_{\cos}$, $\gamma_{\sin}$ | How much the heading effect changes per standard deviation of speed. Read the other way, whether the speed effect depends on heading. |
-| $\beta_{\text{hc}}$, $\beta_{\text{hs}}$ | Jointly describe hourly variation in level within each period (day 07–19, night 19–07) through cosine and sine terms, including the part associated with the area's usual level. |
-| $\beta_{\text{base}}$ | Association with the area's usual level, in dB per standard deviation of that level. Used to assign the stationary-base label. |
+| $\beta_{\text{hc}}$, $\beta_{\text{hs}}$ | Jointly describe hourly variation in level within each period (day 07–19, night 19–07) through cosine and sine terms. |
 | $\beta_{\text{count}}$ | dB per standard deviation of the log measurement count. Mainly a control for sampling intensity, with no direct physical reading. |
-| $\beta_{\text{weekend}}$ | Local weekend-minus-weekday difference in level, in dB, beyond what the area's usual level for each type of day already reflects. |
+| $\beta_{\text{weekend}}$ | Local weekend-minus-weekday difference in level, in dB, adjusted for speed, heading, hour and measurement count. |
 | $\beta_{\text{align}}$ | Amplitude of the heading effect, in dB. See below. |
 
 Both variants share the same terms and differ only in heading encoding.
@@ -120,12 +109,20 @@ Bandwidth is adaptive and was selected by AICc together with the kernel
 (Gaussian or bisquare). The variant with the higher mean local R² was kept,
 with AICc as tie-breaker.
 
-For the weekend effect, a variant without the area's baseline level was also
-fitted, on the same observations, with the same heading encoding and the same
-spatial weights (kernel and bandwidth) as the main model. That
-control is built from the measurements themselves and distinguishes by type of
-day, so it can absorb part of the weekend–weekday contrast. Comparing both
-versions shows how much that result depends on the control.
+**Area baseline level: evaluated and excluded from the main model.**
+NoiseCapture publishes, for each hexagon of 15 m radius, an hourly sound-level
+profile (the median, LA50, of each hour on weekdays, Saturdays and Sundays).
+That profile could serve as a control for local context, but it is computed
+from the same crowdsourced measurements being modelled. To measure how much of
+its contribution was information about the place and how much was the
+measurement itself, an alternative profile was built from the raw points,
+excluding for each point every measurement from its own track. Three versions
+of the model were compared on the same observations and with the same
+weights: no baseline, the profile without the own track, and the NoiseCapture
+profile. The results (see Findings) led to excluding it from the main model.
+The version with the NoiseCapture profile is kept as a sensitivity analysis,
+with the same observations, heading encoding and spatial weights as the main
+model.
 
 **Alignment coefficient.** The heading effect is summarized as one value per
 location:
@@ -146,8 +143,8 @@ with it. This was tested by modelling $\log r_i^2$ against gain: a GAM in
 Gandhinagar, an ANOVA in Geneva, where gain takes few distinct values.
 Measured around zero, this magnitude reflects both spread and bias. In daytime
 Gandhinagar the effect was significant (p < 2e-16), with typical residual
-magnitude at the 95th gain percentile about 1.18 times that at the 5th. In
-daytime Geneva it was also significant (p = 9.3e-08), but reversed (0.72).
+magnitude at the 95th gain percentile about 1.36 times that at the 5th. In
+daytime Geneva it was also significant (p < 2e-16), but reversed (0.71).
 
 This was handled in two steps. First, a robust LOESS $\hat b(g)$ of residual
 on gain gives a bias estimate that is subtracted and re-centred:
@@ -182,8 +179,8 @@ which effect stands out locally, not values comparable across cities.
 | Speed-dominant | Noise tracks travel speed; direction matters little. |
 | Urban canyon / directional | Orientation dominates: the same speed sounds different depending on the axis of travel. Consistent with enclosed streets. |
 | Stationary base | High local baseline with weak speed and orientation effects. The level depends more on the place than on how the measurer moves. |
-| Uniform noise | Speed and orientation tied or relatively weak, with the predicted level within 3 dB of the intercept and the intercept near the case median. |
-| Transitional / mixed | No clear dominance of speed or orientation under the assignment rules: their normalized magnitudes are comparable or both are relatively low. |
+| Uniform noise | Speed and orientation effects tied or relatively weak, with the predicted level within 3 dB of the intercept and the intercept close to the case median. |
+| Transitional / mixed | No clear dominance of speed or orientation under the rules used: their normalized magnitudes are comparable or both relatively low. |
 | Anomalous / review | Residual exceeds the calibration-adjusted threshold for its gain bin and sits in a cluster of high residuals. Flagged for inspection rather than interpreted. |
 
 ### Assignment rules
@@ -205,9 +202,8 @@ and each point gets the first one it meets:
    calibration.
 2. **Speed-dominant**: a strong effect and $s_i / a_i \gt 1.2$.
 3. **Urban canyon / directional**: a strong effect and $s_i / a_i \lt 1/1.2$.
-4. **Stationary base**: the intercept exceeds its 75th percentile, or $\beta_{\text{base}}$
-   exceeds the median of $\lvert \beta_{\text{base}} \rvert$ plus its MAD; and neither speed nor
-   alignment exceeds its 75th percentile.
+4. **Stationary base**: the intercept exceeds its 75th percentile, and neither
+   speed nor alignment exceeds its 75th percentile.
 5. **Transitional / mixed**: everything else, i.e. ties or both effects weak.
 
 Finally, a non-anomalous point with a tie or weak effects becomes **uniform
@@ -217,160 +213,174 @@ intercept is near the median (within 0.33 IQR).
 ## Findings
 
 **The anomaly criterion cuts flagged points by an order of magnitude.**
-Depending on the case, a fixed 5 dB cutoff flags 21% to 26% of points.
+Depending on the case, a fixed 5 dB cutoff flags 27% to 52% of points.
 Requiring a spatial cluster of high residuals (LISA high-high) brings that to
-3–6%, and the per-gain-bin threshold to 1.0–2.2%. The final rate per gain bin
+4–8%, and the per-gain-bin threshold to 1.8–2.6%. The final rate per gain bin
 ranges from 0% to 3%; an even rate is partly expected by construction, since
-each threshold is a within-bin percentile. In Geneva at night, 13 of the 18
-anomalies come from devices with a −22.5 dB gain. As an additional diagnostic,
-the Spearman correlation between each track's median gain and its share of
-anomalous points was computed. It was weak in Gandhinagar (−0.07 by day,
-+0.19 at night; p ≥ 0.07) and negative in Geneva (−0.25 by day, −0.30 at
-night; p ≈ 0.04 and 0.05): there, lower-gain tracks tend to have more
-anomalies. With four tests, none of these correlations survives a
-multiple-comparison correction. The maps keep the separate layers so the difference can be
-inspected directly.
+each threshold is a within-bin percentile. As an additional diagnostic, the
+Spearman correlation between each track's median gain and its share of
+anomalous points was computed. It was weak in three cases (−0.11 to +0.01;
+p ≥ 0.38). In nighttime Gandhinagar it was +0.26 (p = 0.015): there,
+higher-gain tracks tend to have more anomalies. With four tests, that
+correlation does not survive a multiple-comparison correction. The maps keep
+the separate layers so the difference can be inspected directly.
 
-**The directional term behaves very differently in each city.** The
-median alignment coefficient is 4.8 dB by day and 7.0 dB at night in
-Gandhinagar, against 0.6 dB in Geneva in both periods. At each case's mean
-speed, that means typical gaps of 10 to 14 dB between loudest and quietest
-heading in Gandhinagar, and about 1 dB in Geneva. The axial model won
-selection only in Geneva at night, where it also left the cleanest residuals
-of the four cases (Moran's I on residuals 0.01, against 0.05 to 0.27
-elsewhere). Both specifications use the same number of predictors and
-interaction terms, differing in how movement direction is represented.
+**The directional term weighs much more in Gandhinagar than in Geneva.** The
+median alignment coefficient is 4.9 dB by day and 7.1 dB at night in
+Gandhinagar, against 1.6 and 2.6 dB in Geneva. At each case's mean speed, that
+means typical gaps of 10 to 14 dB between loudest and quietest heading in
+Gandhinagar, and 3 to 5 dB in Geneva. The axial model won selection only in
+Gandhinagar at night, where it also left the cleanest residuals of the four
+cases (Moran's I on residuals 0.21, against 0.30 to 0.54 elsewhere). Both
+specifications use the same number of predictors and interaction terms,
+differing in how movement direction is represented.
 
 ![Heading effect by case](figures/alineacion_en.png)
 
-**Weekend effects differed between cities and were larger at night.** Since
-$\beta_{\text{weekend}}$ is adjusted for the area's profile by type of day, it does not
-represent the total weekend–weekday difference.
+**Weekend effects differed between cities and were larger at night.**
 
 | | locations | median $\beta_{\text{weekend}}$ | dominant pattern |
 |---|---|---|---|
-| Gandhinagar, day | 1145 | −1.5 dB | mixed: 45% quieter, 36% louder |
-| Gandhinagar, night | 732 | −4.3 dB | 58% quieter, 15% louder |
-| Geneva, day | 214 | +0.1 dB | no location with $\lvert z \rvert \ge 2$ |
-| Geneva, night | 325 | +1.4 dB | 18% louder, no significant decreases |
+| Gandhinagar, day | 906 | −0.2 dB | mixed: 38% quieter, 38% louder |
+| Gandhinagar, night | 650 | −6.4 dB | 67% quieter, none louder |
+| Geneva, day | 122 | +2.0 dB | 53% louder, 7% quieter |
+| Geneva, night | 108 | +7.0 dB | no location with $\lvert z \rvert \ge 2$ |
 
-**How $\beta_{\text{weekend}}$ is estimated and filtered.** It is the coefficient on the weekend indicator: the local
-weekend-minus-weekday difference, in dB, adjusted for the other model terms.
-It is reported only where it can be estimated reasonably: among the $k$ nearest
-neighbours (10% of points, bounded to 30–150), 10–90% of measurements are from
-weekends, local R² is at least 0.5, and the effect is within ±12 dB. An effect
-counts as distinguishable when the coefficient is at least twice its standard
-error in absolute value.
+**How $\beta_{\text{weekend}}$ is estimated and filtered.** It is the
+coefficient on the weekend indicator: the local weekend-minus-weekday
+difference, in dB, adjusted for the other model terms. It is reported only
+where it can be estimated reasonably: among the $k$ nearest neighbours (10% of
+points, bounded to 30–150), 10–90% of measurements are from weekends, local R²
+is at least 0.5, and the effect is within ±12 dB. An effect counts as
+distinguishable when the coefficient is at least twice its standard error in
+absolute value.
 
-In daytime Gandhinagar the median is −1.5 dB, yet 81% of locations show a
-distinguishable effect: 45% quieter and 36% louder, along different
-corridors. The local estimates show opposite weekend patterns within the city,
-which the median does not capture.
+In daytime Gandhinagar the median is close to zero, yet 76% of locations show
+a distinguishable effect, split evenly between quieter and louder weekends
+along different corridors. At night, by contrast, the decrease clearly
+dominates. In nighttime Geneva the median is high, but no location reaches
+$\lvert z \rvert \ge 2$: the estimated effect is large and imprecise.
 
-**Sensitivity to the area's baseline level.** The table compares the main
-model with a variant without that predictor, keeping the same observations,
-heading encoding and spatial weights. Only locations meeting the reporting
-criteria in both versions are summarized. Removing the predictor changes local
-R² and the coefficients, so it can also change which locations meet those
-criteria, including the ±12 dB limit. These results describe the common subset,
-not all estimates or the whole city. This is why the medians with the baseline
-differ from those in the previous table.
+**In Geneva, the area baseline level largely reused the measurements
+themselves.** When the own track is excluded, many points are left with no
+other measurement in their hexagon:
 
-| | common locations | median with baseline | median without baseline | same sign |
+| Situation when the own track is excluded | Geneva, day | Geneva, night | Gandhinagar, day |
+|---|---|---|---|
+| Other tracks in the hexagon, at the same hour and type of day | 3% | 5% | 28% |
+| Other tracks in the hexagon, only at other hours | 36% | 35% | 47% |
+| No other track in the hexagon | 61% | 60% | 25% |
+
+In Gandhinagar, percentages refer to points falling inside some hexagon. In
+Geneva, for most points the NoiseCapture profile was built from their own track
+alone. On the points that do have other tracks in their hexagon (957 in
+daytime Geneva and 2462 in daytime Gandhinagar), the three model versions gave:
+
+![Evaluation of the area baseline level](figures/evaluacion_nivel_base_en.png)
+
+In daytime Geneva, most of the NoiseCapture profile's contribution disappears
+once the own track is excluded: mean local R² goes from 0.71 to 0.41, against
+0.24 with no baseline, and residual Moran's I rises from 0.20 to 0.55 (0.67
+with no baseline). In daytime Gandhinagar, the three versions fit almost
+equally well (0.61 to 0.64, with Moran's I of 0.32 to 0.33): there the
+baseline adds little. The comparison was run only for these two cases; it was
+not evaluated for nighttime Gandhinagar.
+
+**The sensitivity analysis with the baseline confirms that contrast.** The
+table compares the main model with the version including the baseline, on the
+same observations and with the same spatial weights. The weekend columns use
+locations admissible in both versions.
+
+| | mean local R² (without / with) | residual Moran's I (without / with) | median $\beta_{\text{weekend}}$ (without / with) | same sign |
 |---|---|---|---|---|
-| Gandhinagar, day | 902 | −1.5 dB | −0.3 dB | 96% |
-| Gandhinagar, night | 579 | −4.4 dB | −5.7 dB | 96% |
-| Geneva, day | 141 | −0.5 dB | +2.7 dB | 66% |
-| Geneva, night | 133 | +1.5 dB | +3.7 dB | 99% |
+| Gandhinagar, day | 0.68 / 0.72 | 0.30 / 0.28 | −0.2 / −1.5 dB | 96% |
+| Gandhinagar, night | 0.76 / 0.81 | 0.21 / 0.13 | −6.4 / −4.1 dB | 98% |
+| Geneva, day | 0.54 / 0.83 | 0.54 / 0.06 | +2.0 / −0.5 dB | 73% |
+| Geneva, night | 0.60 / 0.85 | 0.30 / −0.01 | +7.0 / +2.5 dB | 85% |
+
+In Gandhinagar, adding the baseline improves fit only slightly and the weekend
+effect keeps its sign at almost every location; the nighttime decrease holds
+in both versions. In Geneva, the baseline raises R² sharply and nearly removes
+residual autocorrelation, consistent with it reusing the measurement itself.
+With it, none of the compared Geneva locations shows a distinguishable weekend
+effect; without it, 53% of daytime Geneva locations are louder at weekends.
 
 ![Sensitivity of the weekend effect to the baseline level](figures/sensibilidad_finde_en.png)
 
-In Gandhinagar and in Geneva at night, the coefficient kept its sign in
-roughly 96% or more of the common locations. Within that subset, Gandhinagar
-retained predominantly negative nighttime coefficients and a daytime mix of
-signs, while Geneva retained predominantly positive nighttime coefficients.
-Magnitudes changed when the profile was removed, especially in Geneva. At
-night, the median went from +1.5 to +3.7 dB; among the 133 common locations,
-20% reached $\lvert z \rvert \ge 2$ without the baseline, against none with it. In daytime
-Geneva, the sign agreed in 66% of common locations and the median went from
-−0.5 to +2.7 dB.
-
-Removing the baseline also worsened in-sample fit: mean local R² dropped by
-0.05 in Gandhinagar and by 0.24 to 0.30 in Geneva, and residual spatial
-autocorrelation increased in all four cases. Since the profile is built from
-the same measurements, this does not show that the model with the baseline
-predicts new observations better, and the comparison cannot separate how much
-of its contribution is local context and how much is reuse of the response.
-
-**Model fit varied across the assigned labels, with no ordering common to both
-cities.** In Gandhinagar, urban-canyon locations had the lowest mean
-|residual| (2.5 dB by day, 2.7 dB at night) and, at night, also the highest
-local R² (0.90). In daytime Geneva, urban canyon had the highest local R²
-(0.87) and stationary base the lowest mean |residual| (2.8 dB); at night, uniform
-noise and stationary base fit best (1.3 and 1.8 dB; R² 0.93 and 0.92).
-Speed-dominant locations had the highest mean |residual| among the regular
-regimes in three of the four cases (3.9 to 4.2 dB). The anomalous class
-isolates mean absolute residuals of 15.5 to 18.0 dB in at most 2.2% of points. Mean
-local R² ranges from 0.72 to 0.87.
+**Model fit varied across the assigned labels.** Stationary-base locations had
+the highest mean local R² in all four cases (0.73 to 0.84) and the lowest mean
+|residual| in three (2.4 to 5.4 dB). In daytime Gandhinagar, the lowest
+residual belonged to urban canyon (2.4 dB). Uniform noise fit worst among the
+regular regimes in all four cases (mean local R² 0.41 to 0.62). The anomalous
+class isolates mean absolute residuals of 16 to 21 dB in at most 2.6% of
+points. Mean local R² ranges from 0.54 to 0.76.
 
 ## Interpretation
 
-In Gandhinagar, where measurements were taken from vehicles, noise is strongly
-tied to movement: depending on heading, the level changes by about 10 to 14 dB
-at mean speed. This pattern is consistent with traffic corridors with marked
-directions of travel, although it could also reflect the vehicle's own noise
-or street geometry. Negative nighttime coefficients remained predominant when
-the area's baseline level was removed, among locations retained in both
-versions.
+In Gandhinagar, where most measurements were taken at vehicle speeds, noise is
+strongly tied to movement: depending on heading, the level changes by about 10
+to 14 dB at mean speed. This pattern is consistent with traffic corridors with
+marked directions of travel, although it could also reflect the vehicle's own
+noise or street geometry. The nighttime weekend decrease is the most stable
+temporal result: it appears at most locations and holds with and without the
+area baseline level.
 
-In Geneva, where measurements were taken on foot, heading matters little and
-each area's usual level explains much of the variation. Weekend nights tend to
-be louder, but the size of that effect depends on how local context is
-controlled for.
+In Geneva, where measurements were mostly taken on foot, heading matters about
+three times less and the model explains a smaller share of the variation.
+Weekends tend to be louder, but that result depends on how local context is
+controlled for, and at night it is imprecise.
 
-Overall, the models show a stronger association with heading in Gandhinagar
-and greater sensitivity of fit to the area profile in Geneva. Comparing fits
-with and without that profile distinguished sign patterns that persisted from
-magnitudes that depended on the control. Differences in measurement mode and
-the profile's origin prevent attributing these results solely to the cities.
-The findings describe exploratory associations, not causal effects.
+Overall, the models show a much stronger association with heading in
+Gandhinagar, and more stable temporal effects there than in Geneva. Since the
+two cities were measured differently, the share of that difference due to the
+cities rather than the measurement mode cannot be separated, and the results
+describe associations, not causal effects.
 
 ## Limitations
 
-- Median speeds differ sharply between cities (≈39 km/h in Gandhinagar
-  by day, ≈5 km/h in Geneva), so measurements were collected in
-  different modes: vehicle-borne versus pedestrian. Baseline levels are
-  not directly comparable (median intercept 75.0 vs 54.2 dB by day),
-  only spatial and temporal structure is.
+- Recorded speeds differ sharply between cities, indicating that
+  measurements were mostly taken in different ways. In Gandhinagar, 76% to
+  88% of points exceed 15 km/h (median ≈39 km/h by day), consistent with
+  vehicle-borne measurement. In daytime Geneva, 91% are at 8 km/h or less
+  (median ≈5 km/h), consistent with walking; at night the mix is broader (47%
+  at 8 km/h or less, 30% above 15 km/h). Baseline levels are not directly
+  comparable (median intercept 74.4 vs 51.8 dB by day), only spatial and
+  temporal structure is.
+
+  ![Measurement speed by case](figures/velocidad_en.png)
 
 - Calibration also differs structurally. In Geneva, gain takes only a few
   values (four by day, five at night), with most tracks at −22.5 or 0 dB. In
   Gandhinagar it is widely dispersed: −35 to +25 dB by day and up to +64 dB at
   night.
 
+- In Gandhinagar, 31% of daytime points (1436 of 4700) and 20% of nighttime
+  points (970 of 4767) are left out of the model because they fall outside
+  every NoiseCapture hexagon, so they have no area measurement count. They are
+  far from any area (by day, a median of 2.9 km from the nearest hexagon), so
+  they were excluded rather than imputed. No Geneva points are excluded for
+  this reason.
+
 - The weekend subset is not representative in speed. Locations with
   enough weekday/weekend mix to estimate $\beta$ have a median speed of
-  17.8 km/h at night in Gandhinagar, against 38 km/h for the full set.
+  21.4 km/h at night in Gandhinagar, against 38 km/h for the full set.
 
 - In Gandhinagar, tracks with one or two observations, which the local model
-  cannot fit well, have much larger residuals (median |residual| 6.2 to
-  15.1 dB, against about 2.5 dB elsewhere), although they hold under 1% of
-  points. In Geneva the difference is small. Filtering short tracks is an open
-  improvement.
+  cannot fit well, have much larger residuals (median |residual| 9.1 to
+  14.6 dB, against about 3 dB elsewhere), although they hold under 1% of
+  points. In Geneva the difference is smaller. Filtering short tracks is an
+  open improvement.
 
-- The area's usual level and measurement count come from aggregates that
-  NoiseCapture computes from the same crowdsourced measurements, so they may
-  include the observations being modelled. They are not an independent
-  reference, and this dependence can favour in-sample fit; residualizing the
-  area level does not remove it. Results are therefore read as exploratory
-  associations, not as causal effects or out-of-sample predictive
-  validation.
+- The area measurement count is still a NoiseCapture aggregate that includes
+  the measurements themselves; it acts as a control for sampling intensity,
+  not for sound level. The baseline-level evaluation was run only for daytime
+  Geneva and daytime Gandhinagar, on points with other tracks in their
+  hexagon. Results are read as exploratory associations, not as causal effects
+  or out-of-sample predictive validation.
 
-- In nighttime Gandhinagar, 16% of locations have a heading-effect amplitude
-  above 20 dB, and some exceed 70 dB. Such values are implausible as a physical
-  effect and probably reflect unstable local regressions, with few neighbours
-  and headings closely tied to each corridor. Medians are unaffected, but map
-  values in those areas should be read with caution.
+- In nighttime Gandhinagar, 3% of locations have a heading-effect amplitude
+  above 20 dB (maximum 34 dB), implausible as a physical effect. Medians are
+  unaffected, but map values in those areas should be read with caution.
 
 - GWR local estimates are spatially correlated, so $\lvert z \rvert \ge 2$ flags
   locations worth attention rather than independent significance tests.
