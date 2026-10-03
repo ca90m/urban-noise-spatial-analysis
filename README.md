@@ -400,11 +400,11 @@ describe associations, not causal effects.
   enough weekday/weekend mix to estimate $\beta$ have a median speed of
   21.4 km/h at night in Gandhinagar, against 38 km/h for the full set.
 
-- In Gandhinagar, tracks with one or two observations, which the local model
-  cannot fit well, have much larger residuals (median |residual| 9.1 to
+- In Gandhinagar, tracks with one or two observations retained after
+  filtering have much larger residuals (median |residual| 9.1 to
   14.6 dB, against about 3 dB elsewhere), although they hold under 1% of
-  points. In Geneva the difference is smaller. Filtering short tracks is an
-  open improvement.
+  points. In Geneva the difference is smaller. The quality and influence
+  of tracks with few retained observations remain to be assessed.
 
 - The area measurement count is still a NoiseCapture aggregate that includes
   the measurements themselves; it acts as a control for sampling intensity,

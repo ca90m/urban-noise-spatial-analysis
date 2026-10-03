@@ -428,11 +428,12 @@ los resultados describen asociaciones, no efectos causales.
   21.4 km/h en Gandhinagar durante la noche, frente a 38 km/h en el conjunto
   completo.
 
-- En Gandhinagar, los recorridos con una o dos observaciones, que el modelo
-  local no logra ajustar bien, tienen residuos mucho mayores (mediana de
+- En Gandhinagar, los recorridos con una o dos observaciones retenidas tras
+  los filtros tienen residuos mucho mayores (mediana de
   |residuo| de 9.1 a 14.6 dB, frente a unos 3 dB en el resto), aunque reúnen
-  menos del 1% de los puntos. En Ginebra la diferencia es menor. Filtrar los
-  recorridos cortos es una mejora pendiente.
+  menos del 1% de los puntos. En Ginebra la diferencia es menor. Queda pendiente
+  evaluar la calidad y la influencia de los recorridos con pocas observaciones
+  retenidas.
 
 - La cantidad de mediciones del área sigue siendo un agregado de NoiseCapture
   que incluye las propias mediciones; funciona como control de la intensidad
