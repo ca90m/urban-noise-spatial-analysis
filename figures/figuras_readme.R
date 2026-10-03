@@ -7,7 +7,7 @@ textos <- list(
   es = list(casos = c("Gandhinagar, día", "Gandhinagar, noche", "Ginebra, día", "Ginebra, noche"),
             sens_x = "sin nivel base, modelo principal (dB)", sens_y = "con nivel base (dB)",
             sens_tit = "Sensibilidad del efecto de fin de semana al nivel base",
-            sens_sub = "Mismas observaciones y pesos; la diagonal indica igualdad",
+            sens_sub = "Ubicaciones admisibles en ambas versiones, con las mismas observaciones y pesos.\nLa diagonal indica igualdad.",
             al_tit = "Efecto del rumbo por caso",
             al_sub = "Amplitud del efecto del rumbo en cada punto (modelo principal)",
             al_cap = "Se muestran valores de hasta %d dB; quedan fuera del gráfico %d puntos de Gandhinagar de noche.",
@@ -21,7 +21,7 @@ textos <- list(
   en = list(casos = c("Gandhinagar, day", "Gandhinagar, night", "Geneva, day", "Geneva, night"),
             sens_x = "without baseline level, main model (dB)", sens_y = "with baseline level (dB)",
             sens_tit = "Sensitivity of the weekend effect to the baseline level",
-            sens_sub = "Same observations and weights; the diagonal marks equality",
+            sens_sub = "Locations admissible in both versions, with the same observations and weights.\nThe diagonal marks equality.",
             al_tit = "Heading effect by case",
             al_sub = "Amplitude of the heading effect at each point (main model)",
             al_cap = "Values up to %d dB shown; %d points from nighttime Gandhinagar fall outside the plot.",
@@ -52,10 +52,13 @@ for (idioma in names(textos)) {
       transmute(caso = factor(tx$casos[k], levels = tx$casos),
                 sin = beta_weekend_raw_sin, con = beta_weekend_raw_con)
   }))
+  n_caso <- datos |> count(caso)
   g1 <- ggplot(datos, aes(sin, con)) +
     geom_hline(yintercept = 0, colour = "grey75") + geom_vline(xintercept = 0, colour = "grey75") +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey40") +
     geom_point(alpha = 0.35, size = 0.9, colour = "#2b6cb0") +
+    geom_text(data = n_caso, aes(x = -Inf, y = Inf, label = paste0("n = ", n)),
+              hjust = -0.2, vjust = 1.5, size = 3.3, inherit.aes = FALSE) +
     facet_wrap(~ caso, ncol = 2) + coord_equal() +
     labs(x = bquote(beta[weekend] ~ .(tx$sens_x)), y = bquote(beta[weekend] ~ .(tx$sens_y)),
          title = tx$sens_tit, subtitle = tx$sens_sub) +
