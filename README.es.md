@@ -13,9 +13,9 @@ comparando día y noche, y días de semana y fines de semana.
 
 ## En resumen
 
-- **El rumbo pesa unas tres veces más en Gandhinagar que en Ginebra.** A
-  velocidad media, el nivel cambia típicamente entre 10 y 14 dB según el rumbo
-  en Gandhinagar, y entre 3 y 5 dB en Ginebra.
+- **En el ajuste, el rumbo pesa unas tres veces más en Gandhinagar que en
+  Ginebra.** A velocidad media, el nivel cambia típicamente entre 10 y 14 dB
+  según el rumbo en Gandhinagar, y entre 3 y 5 dB en Ginebra.
 - **En Gandhinagar, las noches de fin de semana son más silenciosas en la
   mayoría de las ubicaciones** (mediana de −6.4 dB), y ese patrón se mantiene
   con y sin el nivel base del área.
@@ -27,6 +27,11 @@ comparando día y noche, y días de semana y fines de semana.
   Gandhinagar y mayormente a pie en Ginebra de día. Por eso la comparación se
   limita a la estructura espacial y temporal, y los resultados describen
   asociaciones, no efectos causales.
+- **Esas asociaciones describen la muestra, pero anticipan poco el nivel de
+  recorridos nuevos.** Al predecir recorridos que no participaron del ajuste,
+  el error absoluto medio fue de 8.6 a 12.2 dB, cerca del que se obtiene con la
+  media (9.7 a 12.0 dB). Entre el 62% y el 77% de la variación del nivel está
+  entre recorridos.
 
 ## Mapas interactivos
 
@@ -264,10 +269,15 @@ compararlas directamente.
 mediana del coeficiente de alineación es 4.9 dB durante el día y 7.1 dB por la
 noche en Gandhinagar, frente a 1.6 y 2.6 dB en Ginebra. A la velocidad media de
 cada caso, eso implica diferencias típicas de 10 a 14 dB entre el rumbo más
-ruidoso y el más silencioso en Gandhinagar, y de 3 a 5 dB en Ginebra. El modelo
+ruidoso y el más silencioso en Gandhinagar, y de 3 a 5 dB en Ginebra. Un
+diagnóstico de colinealidad local, con los mismos pesos del ajuste, marca el
+efecto del rumbo como mal determinado en pocas ubicaciones: entre el 0% y el
+10% según el caso. Se usó el criterio de Belsley: un índice de condición mayor
+a 30 con dos o más términos, alguno de rumbo, con proporción de varianza mayor
+a 0.5. Excluir esas ubicaciones casi no cambia las medianas. El modelo
 axial fue seleccionado únicamente en Gandhinagar durante la noche, donde
 también dejó los residuos con menor autocorrelación espacial de los cuatro
-casos (I de Moran de los residuos de 0.21, frente a valores de 0.30 a 0.54 en
+casos (I de Moran de los residuos de 0.20, frente a valores de 0.30 a 0.54 en
 los demás). Ambas especificaciones utilizan la misma cantidad de predictores y
 términos de interacción; difieren en cómo representan la dirección del
 movimiento.
@@ -343,7 +353,7 @@ observaciones y los mismos pesos espaciales.
 | | R² local medio (sin / con) | I de Moran de los residuos (sin / con) | Ubicaciones comunes | Mediana de $\beta_{\text{weekend}}$ (sin / con) | Mismo signo |
 |---|---|---|---|---|---|
 | Gandhinagar, día | 0.68 / 0.72 | 0.30 / 0.28 | 906 | −0.2 / −1.5 dB | 96% |
-| Gandhinagar, noche | 0.76 / 0.81 | 0.21 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
+| Gandhinagar, noche | 0.76 / 0.81 | 0.20 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
 | Ginebra, día | 0.54 / 0.83 | 0.54 / 0.06 | 122 | +2.0 / −0.5 dB | 73% |
 | Ginebra, noche | 0.60 / 0.85 | 0.30 / −0.01 | 108 | +7.0 / +2.5 dB | 85% |
 
@@ -372,11 +382,59 @@ casos (R² local medio de 0.41 a 0.62). En la clase anómala, el |residuo| medio
 va de 16 a 21 dB; esta clase reúne como máximo el 2.6% de los puntos. El R²
 local medio del modelo varía entre 0.54 y 0.76.
 
+**Fuera de la muestra, el modelo anticipa poco el nivel de recorridos nuevos.**
+Para evaluar cuánto se generalizan estas asociaciones, se dejaron afuera
+recorridos completos. Los recorridos de cada caso se repartieron en cinco
+grupos, y cada grupo se predijo con un modelo ajustado solo con los demás.
+Dentro de cada partición se recalculó con los recorridos de entrenamiento todo
+lo que se aprende de los datos: centrados, estandarizaciones, la hora
+residualizada y la elección de orientación, kernel y ancho de banda. La
+cantidad de mediciones del área se recalculó sin las mediciones de los
+recorridos de prueba, como si todavía no estuvieran en la base. Se compararon
+el GWR, una regresión global con los mismos términos y la media del
+entrenamiento.
+
+| | Error absoluto medio: GWR | Regresión global | Media de entrenamiento | Recorridos en los que el GWR supera a la global |
+|---|---|---|---|---|
+| Gandhinagar, día | 8.6 dB | 10.5 dB | 9.7 dB | 57% de 74 |
+| Gandhinagar, noche | 11.6 dB | 11.0 dB | 12.0 dB | 39% de 90 |
+| Ginebra, día | 10.9 dB | 12.5 dB | 11.0 dB | 61% de 66 |
+| Ginebra, noche | 12.2 dB | 9.8 dB | 11.9 dB | 56% de 45 |
+
+Los errores se calculan sobre todas las observaciones de prueba. La última
+columna compara el error medio de cada recorrido (prueba de Wilcoxon pareada:
+p = 0.27, 0.025, 0.038 y 0.48, en el orden de la tabla). Ningún modelo mejora
+en más de unos 2 dB a la media de entrenamiento, con errores típicos de 9 a
+12 dB.
+
+La razón principal es que la mayor parte de la variación está entre
+recorridos: entre el 62% y el 77% de la varianza del nivel corresponde a
+diferencias de nivel medio entre recorridos, que pueden deberse al
+dispositivo, a su calibración o al contexto de cada medición. El GWR anticipa
+en parte el nivel general de un recorrido según dónde se mide (correlación de
+0.25 a 0.48 entre el nivel medio predicho y el observado de cada recorrido), y
+de día lo hace mejor que la regresión global. Pero ninguno de los dos modelos
+anticipa cómo varía el nivel a lo largo de un recorrido nuevo: dentro de cada
+recorrido, la correlación entre el nivel medido y el predicho va de −0.05 a
++0.07 con el GWR y de +0.02 a +0.21 con la regresión global. De noche, además,
+los coeficientes locales del GWR producen algunas predicciones extremas: el 3%
+de los errores en Gandhinagar y el 8% en Ginebra superan los 30 dB.
+
+El R² local medio de 0.54 a 0.76 refleja, entonces, sobre todo diferencias de
+nivel entre recorridos, que el modelo reproduce en buena parte porque cada
+recorrido integra su propio vecindario. Lo mismo ocurre con la autocorrelación
+de los residuos: el I de Moran se calcula con los 4 vecinos más cercanos, y
+entre el 70% y el 93% de ellos pertenece al mismo recorrido según el caso. Por
+eso su valor (de 0.20 a 0.54) refleja en buena parte cuánto persiste el desvío
+de nivel dentro de cada recorrido. Los coeficientes y los mapas describen la
+muestra medida; no son relaciones que se trasladen directamente a mediciones
+nuevas.
+
 ## Interpretación
 
 En Gandhinagar, donde la mayoría de las mediciones se tomó a velocidad de
-vehículo, el ruido aparece fuertemente ligado al movimiento: según el rumbo, el
-nivel cambia unos 10 a 14 dB a velocidad media. Ese patrón es compatible con
+vehículo, el ajuste asocia fuertemente el ruido con el movimiento: según el
+rumbo, el nivel cambia unos 10 a 14 dB a velocidad media. Ese patrón es compatible con
 ejes o corredores de desplazamiento con tránsito marcado, aunque también
 podría reflejar el ruido del propio vehículo o la geometría de las calles. La
 disminución nocturna de fin de semana se observa en la mayoría de las
@@ -394,7 +452,11 @@ En conjunto, los modelos muestran una asociación con el rumbo mucho más
 marcada en Gandhinagar y efectos temporales más estables allí que en Ginebra.
 Como las dos ciudades se midieron de forma distinta, no puede separarse cuánto
 de esa diferencia corresponde a las ciudades y cuánto al modo de medición, y
-los resultados describen asociaciones, no efectos causales.
+los resultados describen asociaciones, no efectos causales. La validación por
+recorridos agrega otra restricción: estas asociaciones apenas mejoran la
+predicción de recorridos nuevos frente a la media, porque gran parte de la
+variación es propia de cada recorrido. Por eso los resultados se leen como una
+descripción de la muestra medida.
 
 ## Limitaciones
 
@@ -437,17 +499,25 @@ los resultados describen asociaciones, no efectos causales.
 
 - La cantidad de mediciones del área sigue siendo un agregado de NoiseCapture
   que incluye las propias mediciones; funciona como control de la intensidad
-  de muestreo, no del nivel sonoro. La evaluación del nivel base se hizo solo
-  en Ginebra de día y Gandhinagar de día, sobre los puntos con otros
-  recorridos en su hexágono. Los resultados se interpretan como asociaciones
-  exploratorias, no como efectos causales ni como una validación predictiva
-  fuera de muestra.
+  de muestreo, no del nivel sonoro. Parte de su asociación con el nivel
+  proviene del propio recorrido: de noche, la correlación entre ambos fue de
+  −0.31 en Gandhinagar y −0.36 en Ginebra, y bajó a −0.13 y −0.19 al quitar
+  las mediciones de los recorridos de prueba de cada partición de la
+  validación. La evaluación del nivel base se hizo solo en
+  Ginebra de día y Gandhinagar de día, sobre los puntos con otros recorridos
+  en su hexágono. Los resultados se interpretan como asociaciones
+  exploratorias, no como efectos causales.
 
-- En Gandhinagar de noche, el 3% de las ubicaciones tiene una amplitud del
-  efecto del rumbo mayor a 20 dB (máximo 34 dB). Las amplitudes extremas
-  requieren cautela y no se interpretan directamente como diferencias físicas
-  de ruido. La figura limita el rango visual a 25 dB, pero los resúmenes se
-  calculan con todas las estimaciones.
+- En Gandhinagar de noche, el 3% de las ubicaciones (109) tiene una amplitud
+  del efecto del rumbo mayor a 20 dB (máximo 34 dB). Casi todas (97%) tienen
+  un VIF local mayor a 10 en algún término de rumbo, frente al 28% del resto:
+  allí las velocidades cercanas se concentran lejos de la velocidad media, que
+  es donde se evalúa $\beta_{\text{align}}$, y los términos de rumbo quedan
+  casi colineales con sus interacciones con la velocidad. Su error estándar
+  aproximado es unas tres veces mayor (mediana de 4.6 frente a 1.6 dB). Por eso
+  esas amplitudes no se interpretan como diferencias físicas de ruido. La
+  figura limita el rango visual a 25 dB, pero los resúmenes se calculan con
+  todas las estimaciones.
 
 - Las estimaciones locales de GWR están correlacionadas espacialmente.
   Por eso, $\lvert z \rvert \ge 2$ señala ubicaciones que merecen atención, sin constituir

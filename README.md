@@ -13,9 +13,9 @@ weekday/weekend.
 
 ## Summary
 
-- **Heading matters about three times more in Gandhinagar than in Geneva.** At
-  mean speed, the level typically changes by 10 to 14 dB with heading in
-  Gandhinagar, and by 3 to 5 dB in Geneva.
+- **In the fitted models, heading matters about three times more in
+  Gandhinagar than in Geneva.** At mean speed, the level typically changes by
+  10 to 14 dB with heading in Gandhinagar, and by 3 to 5 dB in Geneva.
 - **In Gandhinagar, weekend nights are quieter at most locations** (median
   −6.4 dB), and that pattern holds with and without the area baseline level.
 - **NoiseCapture's hourly profile proved unreliable as a control in Geneva.**
@@ -26,6 +26,10 @@ weekday/weekend.
   Gandhinagar and mostly on foot in daytime Geneva. Comparisons are therefore
   limited to spatial and temporal structure, and the results describe
   associations, not causal effects.
+- **These associations describe the sample but say little about new tracks.**
+  When predicting tracks left out of the fit, the mean absolute error was 8.6
+  to 12.2 dB, close to what the mean alone achieves (9.7 to 12.0 dB). Between
+  62% and 77% of the variation in level lies between tracks.
 
 ## Interactive maps
 
@@ -251,9 +255,14 @@ the separate layers so the difference can be inspected directly.
 median alignment coefficient is 4.9 dB by day and 7.1 dB at night in
 Gandhinagar, against 1.6 and 2.6 dB in Geneva. At each case's mean speed, that
 means typical gaps of 10 to 14 dB between loudest and quietest heading in
-Gandhinagar, and 3 to 5 dB in Geneva. The axial model won selection only in
+Gandhinagar, and 3 to 5 dB in Geneva. A local collinearity diagnostic, using
+the same weights as the fit, flags the heading effect as poorly determined at
+few locations: 0% to 10% depending on the case. It uses Belsley's criterion: a
+condition index above 30 with two or more terms, at least one of them a
+heading term, having a variance proportion above 0.5. Excluding those
+locations barely changes the medians. The axial model won selection only in
 Gandhinagar at night, where it also left the cleanest residuals of the four
-cases (Moran's I on residuals 0.21, against 0.30 to 0.54 elsewhere). Both
+cases (Moran's I on residuals 0.20, against 0.30 to 0.54 elsewhere). Both
 specifications use the same number of predictors and interaction terms,
 differing in how movement direction is represented.
 
@@ -323,7 +332,7 @@ same observations and with the same spatial weights.
 | | mean local R² (without / with) | residual Moran's I (without / with) | common locations | median $\beta_{\text{weekend}}$ (without / with) | same sign |
 |---|---|---|---|---|---|
 | Gandhinagar, day | 0.68 / 0.72 | 0.30 / 0.28 | 906 | −0.2 / −1.5 dB | 96% |
-| Gandhinagar, night | 0.76 / 0.81 | 0.21 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
+| Gandhinagar, night | 0.76 / 0.81 | 0.20 / 0.13 | 650 | −6.4 / −4.1 dB | 98% |
 | Geneva, day | 0.54 / 0.83 | 0.54 / 0.06 | 122 | +2.0 / −0.5 dB | 73% |
 | Geneva, night | 0.60 / 0.85 | 0.30 / −0.01 | 108 | +7.0 / +2.5 dB | 85% |
 
@@ -349,11 +358,54 @@ regular regimes in all four cases (mean local R² 0.41 to 0.62). The anomalous
 class isolates mean absolute residuals of 16 to 21 dB in at most 2.6% of
 points. Mean local R² ranges from 0.54 to 0.76.
 
+**Out of sample, the model says little about the level of new tracks.** To
+assess how far these associations generalize, whole tracks were held out. Each
+case's tracks were split into five groups, and each group was predicted with a
+model fitted only on the others. Within each split, everything learned from
+the data was recomputed on the training tracks: centring, standardization, the
+residualized hour term, and the choice of heading encoding, kernel and
+bandwidth. The area measurement count was recomputed without the test tracks'
+measurements, as if they were not yet in the database. GWR was compared with a
+global regression with the same terms and with the training mean.
+
+| | Mean absolute error: GWR | Global regression | Training mean | Tracks where GWR beats the global model |
+|---|---|---|---|---|
+| Gandhinagar, day | 8.6 dB | 10.5 dB | 9.7 dB | 57% of 74 |
+| Gandhinagar, night | 11.6 dB | 11.0 dB | 12.0 dB | 39% of 90 |
+| Geneva, day | 10.9 dB | 12.5 dB | 11.0 dB | 61% of 66 |
+| Geneva, night | 12.2 dB | 9.8 dB | 11.9 dB | 56% of 45 |
+
+Errors are computed over all test observations. The last column compares each
+track's mean error (paired Wilcoxon test: p = 0.27, 0.025, 0.038 and 0.48, in
+table order). No model improves on the training mean by more than about 2 dB,
+with typical errors of 9 to 12 dB.
+
+The main reason is that most of the variation lies between tracks: 62% to 77%
+of the variance in level comes from differences in mean level between tracks,
+which may reflect the device, its calibration or the context of each
+measurement. GWR partly anticipates a track's overall level from where it was
+measured (correlation of 0.25 to 0.48 between each track's predicted and
+observed mean level), and does so better than the global regression by day.
+But neither model anticipates how the level varies along a new track: within
+tracks, the correlation between measured and predicted level ranges from −0.05
+to +0.07 for GWR and from +0.02 to +0.21 for the global regression. At night,
+GWR's local coefficients also produce some extreme predictions: 3% of errors in
+Gandhinagar and 8% in Geneva exceed 30 dB.
+
+The mean local R² of 0.54 to 0.76 therefore mostly reflects level differences
+between tracks, which the model reproduces largely because each track is part
+of its own neighbourhood. The same applies to residual autocorrelation:
+Moran's I is computed with the 4 nearest neighbours, and 70% to 93% of them
+belong to the same track depending on the case. Its value (0.20 to 0.54)
+therefore largely reflects how persistent each track's level offset is. The
+coefficients and maps describe the measured sample; they are not
+relationships that carry over directly to new measurements.
+
 ## Interpretation
 
-In Gandhinagar, where most measurements were taken at vehicle speeds, noise is
-strongly tied to movement: depending on heading, the level changes by about 10
-to 14 dB at mean speed. This pattern is consistent with marked axes or corridors of
+In Gandhinagar, where most measurements were taken at vehicle speeds, the fit
+strongly ties noise to movement: depending on heading, the level changes by
+about 10 to 14 dB at mean speed. This pattern is consistent with marked axes or corridors of
 traffic movement, although it could also reflect the vehicle's own
 noise or street geometry. The nighttime weekend decrease appears at most locations, and the
 predominance of negative nighttime coefficients held when the baseline level
@@ -369,7 +421,11 @@ Overall, the models show a much stronger association with heading in
 Gandhinagar, and more stable temporal effects there than in Geneva. Since the
 two cities were measured differently, the share of that difference due to the
 cities rather than the measurement mode cannot be separated, and the results
-describe associations, not causal effects.
+describe associations, not causal effects. The track-wise validation adds a
+further constraint: these associations barely improve predictions for new
+tracks over the mean, because much of the variation is specific to each
+track. The results are therefore read as a description of the measured
+sample.
 
 ## Limitations
 
@@ -408,15 +464,23 @@ describe associations, not causal effects.
 
 - The area measurement count is still a NoiseCapture aggregate that includes
   the measurements themselves; it acts as a control for sampling intensity,
-  not for sound level. The baseline-level evaluation was run only for daytime
-  Geneva and daytime Gandhinagar, on points with other tracks in their
-  hexagon. Results are read as exploratory associations, not as causal effects
-  or out-of-sample predictive validation.
+  not for sound level. Part of its association with level comes from the
+  track itself: at night, their correlation was −0.31 in Gandhinagar and
+  −0.36 in Geneva, falling to −0.13 and −0.19 once the measurements of each
+  validation split's test tracks were removed. The baseline-level evaluation
+  was run only for daytime Geneva and daytime Gandhinagar, on points with
+  other tracks in their hexagon. Results are read as exploratory associations,
+  not as causal effects.
 
-- In nighttime Gandhinagar, 3% of locations have a heading-effect amplitude
-  above 20 dB (maximum 34 dB). Extreme amplitudes call for caution and are not
-  read directly as physical noise differences. The figure limits the visible
-  range to 25 dB, but summaries are computed with all estimates.
+- In nighttime Gandhinagar, 3% of locations (109) have a heading-effect
+  amplitude above 20 dB (maximum 34 dB). Almost all of them (97%) have a local
+  VIF above 10 in some heading term, against 28% elsewhere: there, nearby speeds
+  are concentrated far from the mean speed at which $\beta_{\text{align}}$ is
+  evaluated, and the heading terms become nearly collinear with their speed
+  interactions. Their approximate standard error is about three times larger
+  (median 4.6 vs 1.6 dB). Those amplitudes are therefore not read as physical
+  noise differences. The figure limits the visible range to 25 dB, but
+  summaries are computed with all estimates.
 
 - GWR local estimates are spatially correlated, so $\lvert z \rvert \ge 2$ flags
   locations worth attention rather than independent significance tests.
