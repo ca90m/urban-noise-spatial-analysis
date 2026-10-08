@@ -16,14 +16,24 @@ comparando día y noche, y días de semana y fines de semana.
 - **En los mapas, el rumbo pesa mucho más en Gandhinagar que en Ginebra, pero
   sobre todo por diferencias entre recorridos.** El GWR asocia diferencias
   típicas de 10 a 14 dB según el rumbo en Gandhinagar. Un modelo jerárquico,
-  que separa el nivel propio de cada recorrido, reduce el efecto a 2 a 3 dB
-  dentro de un mismo recorrido; en Ginebra no se distingue.
-- **La velocidad sí tiene un efecto dentro de cada recorrido:** entre 0.45 y
-  1.7 dB por m/s, según el caso.
-- **El fin de semana solo puede compararse entre recorridos distintos.** Al
-  tenerlo en cuenta, la disminución nocturna de Gandhinagar (−3.5 ± 2.5 dB) no
-  se distingue de cero, mientras que los fines de semana más ruidosos de
-  Ginebra (+9 a +13 dB) se sostienen.
+  que separa el nivel propio de cada recorrido, reduce el efecto a entre 1.5 y
+  4 dB dentro de un mismo recorrido, según el modelo; en Ginebra no se
+  distingue.
+- **La velocidad tiene un efecto dentro de cada recorrido** de 0.45 a 0.7 dB
+  por m/s en Gandhinagar y en Ginebra de noche, que se mantiene entre
+  mediciones separadas por pocos segundos. En Ginebra de día, medida
+  mayormente a pie, la asociación (1.6 dB por m/s) aparece solo con los
+  cambios lentos a lo largo del recorrido.
+- **El fin de semana solo puede compararse entre recorridos distintos, y esa
+  comparación es inestable.** La disminución nocturna de Gandhinagar (−3.5 a
+  −4.8 dB) no se distingue de cero. En Ginebra, los fines de semana parecen
+  más ruidosos, pero la estimación va de +5 a +21 dB según qué características
+  de los recorridos se tengan en cuenta.
+- **Cuánto se puede creer una etiqueta depende de cuántos recorridos pasaron
+  por el lugar.** De noche, entre el 25% y el 30% de las ubicaciones tiene
+  menos de dos recorridos efectivos. En Ginebra, la base estacionaria es la
+  etiqueta más expuesta: de noche, el 73% de sus ubicaciones está en esa
+  situación, y su nivel puede estar corrido unos 8 dB por el teléfono.
 - **El perfil horario de NoiseCapture resultó poco confiable como control en
   Ginebra.** La mayoría de los puntos no comparte su hexágono con otros
   recorridos, y el ajuste dependía mucho de cómo se construía ese perfil. Por
@@ -258,6 +268,83 @@ regresión global sin estructura de recorridos. Por último, se repitió el GWR
 con las variables centradas por recorrido y los mismos pesos espaciales que el
 modelo principal, para comparar los mapas de $\beta_{\text{align}}$.
 
+**Modelo dentro-entre con correlación temporal.** Los modelos anteriores
+estiman un solo coeficiente por variable y suponen que, dado el nivel de cada
+recorrido, sus puntos son independientes. Para separar en una misma ecuación
+el efecto dentro de los recorridos del efecto entre recorridos, se ajustó el
+modelo dentro-entre (Mundlak, 1978; Bell y Jones, 2015). Cada variable se
+divide en su desvío respecto de la media del recorrido y esa media:
+
+```math
+\begin{aligned}
+L_{ij} &= \beta_0 + (\mathbf{x}_{ij} - \bar{\mathbf{x}}_j)^\top \boldsymbol\beta_W + \bar{\mathbf{x}}_j^\top \boldsymbol\beta_B + \beta_{\text{weekend}}\, w_j + u_j + \varepsilon_{ij} \\
+u_j &\sim N(0, \tau^2), \qquad \varepsilon_{ij} \sim N\big(0, \sigma^2_{g(j)}\big), \qquad \mathrm{Corr}(\varepsilon_{ij}, \varepsilon_{kj}) = \phi^{\,|t_{ij} - t_{kj}|}
+\end{aligned}
+```
+
+$\boldsymbol\beta_W$ se estima con la variación dentro de cada recorrido, con
+el mismo dispositivo y la misma calibración, como en el modelo de efectos
+fijos. $\boldsymbol\beta_B$ se estima con las diferencias entre las medias de
+los recorridos. $t_{ij}$ es el tiempo en segundos desde el comienzo del
+recorrido: los errores siguen un proceso autorregresivo de orden 1 en tiempo
+continuo (Pinheiro y Bates, 2000), de modo que dos mediciones separadas por
+10 s tienen correlación $\phi^{10}$. La varianza por grupo de ganancia es la
+misma que en el modelo jerárquico. Las interacciones se dividen después de
+multiplicar, y el fin de semana entra solo entre recorridos.
+
+Con esta correlación, el estimador da más peso a los cambios entre mediciones
+cercanas en el tiempo. Si la correlación entre mediciones consecutivas es
+$\rho$, equivale aproximadamente a ajustar
+
+```math
+L_{ij} - \rho\, L_{i-1,j} = (\mathbf{x}_{ij} - \rho\, \mathbf{x}_{i-1,j})^\top \boldsymbol\beta + \eta_{ij}
+```
+
+que, con $\rho$ cercano a 1, compara cada medición con la anterior. Por eso
+$\boldsymbol\beta_W$ refleja sobre todo cambios de pocos segundos, mientras
+que el modelo de efectos fijos pondera por igual los cambios lentos a lo largo
+del recorrido.
+
+Para la velocidad y el rumbo se contrasta
+
+```math
+H_0:\ \beta_W = \beta_B
+```
+
+con una prueba de Wald. Si se rechaza, la asociación entre recorridos difiere
+de la que se observa dentro de ellos, por ejemplo porque los recorridos
+difieren también en dispositivo o en modo de medición. Es la versión de
+Mundlak de la prueba de Hausman (1978). Para el rumbo, la prueba es conjunta sobre
+sus cuatro términos (los dos de rumbo y sus interacciones con la velocidad), y
+el efecto se resume con la amplitud a velocidad media, como
+$\beta_{\text{align}}$.
+
+**Número efectivo de recorridos.** Los coeficientes de cada ubicación se
+estiman con los puntos cercanos, que pueden venir de muchos recorridos o de
+uno solo. Para medirlo, se sumaron los pesos del GWR de cada recorrido $j$ en
+la ubicación $u$ y se calculó el número efectivo de recorridos, una adaptación
+del tamaño efectivo de muestra de Kish (1965):
+
+```math
+\omega_j(u) = \frac{\sum_{i \in j} w_i(u)}{\sum_i w_i(u)}, \qquad N_{\text{ef}}(u) = \frac{1}{\sum_j \omega_j(u)^2}
+```
+
+Vale 1 si todo el peso viene de un solo recorrido y $K$ si $K$ recorridos
+pesan lo mismo. Si el modelo local tuviera solo intercepto, este sería un
+promedio ponderado de los niveles y arrastraría los corrimientos de los
+recorridos. Suponiendo corrimientos independientes con varianza $\tau^2$:
+
+```math
+\hat\beta_0(u) \approx \mu(u) + \sum_j \omega_j(u)\, u_j, \qquad \mathrm{Var}\Big(\sum_j \omega_j(u)\, u_j\Big) = \tau^2 \sum_j \omega_j(u)^2 = \frac{\tau^2}{N_{\text{ef}}(u)}
+```
+
+donde $\mu(u)$ es el nivel del lugar. El desvío $\tau/\sqrt{N_{\text{ef}}}$
+se usa como medida de cuánto puede deberse el nivel local a los teléfonos, con
+$\tau$ estimado por el modelo jerárquico de cada caso. Es aproximado: con
+covariables, el arrastre exacto depende también de ellas, y $\tau$ incluye
+diferencias reales entre las zonas que recorrió cada recorrido, así que
+funciona como cota superior.
+
 ## Etiquetas operativas
 
 A cada ubicación se le asigna un régimen según cuál de sus coeficientes
@@ -305,7 +392,8 @@ intercuartílico).
 
 Las etiquetas se calculan con los coeficientes del GWR, que mezclan diferencias
 dentro de cada recorrido y entre recorridos. Cuánto se sostienen al separarlas
-se evalúa en *Efectos dentro de los recorridos*.
+se evalúa en *Efectos dentro de los recorridos*, y cuántos recorridos
+sostienen cada ubicación, en *Recorridos que sostienen cada ubicación*.
 
 ## Resultados
 
@@ -548,9 +636,9 @@ efectos fijos, y del propio modelo en el jerárquico. Los errores del modelo
 jerárquico suponen que, dado el nivel de cada recorrido, sus puntos son
 independientes. Como puntos consecutivos se parecen, son optimistas para los
 efectos que varían dentro de los recorridos; para ellos, la significación se
-juzga con los errores robustos del modelo de efectos fijos. Para el fin de
-semana, que solo se compara entre recorridos, el modelo jerárquico es el
-adecuado.
+juzga con los errores robustos del modelo de efectos fijos y con el modelo
+dentro-entre, que incorpora esa correlación. Para el fin de semana, que solo
+se compara entre recorridos, se usan el modelo jerárquico y el dentro-entre.
 
 **La mayor parte del efecto del rumbo de los mapas es diferencia entre
 recorridos.** Amplitud del efecto del rumbo a velocidad media, en dB:
@@ -589,23 +677,66 @@ los cuatro casos. En Gandhinagar, cerca del 40% al 50% de la asociación de la
 regresión global venía de diferencias entre recorridos, por ejemplo entre
 mediciones a pie y en vehículo, o entre dispositivos.
 
+**Al separar ambos efectos en una misma ecuación, la información precisa está
+dentro de los recorridos.** Resultados del modelo dentro-entre, con
+correlación temporal y varianza según la ganancia. La velocidad está en dB por
+m/s y el rumbo, como amplitud en dB; entre paréntesis figura el error
+estándar, y la columna p corresponde a la prueba de $\beta_W = \beta_B$:
+
+| | Correlación a 10 s | Velocidad: dentro | Velocidad: entre | p | Rumbo: dentro | Rumbo: entre | p |
+|---|---|---|---|---|---|---|---|
+| Gandhinagar, día | 0.25 | 0.56 (0.04) | 1.33 (0.34) | 0.02 | 0.8 (0.3) | 1.4 (2.3) | 0.07 |
+| Gandhinagar, noche | 0.50 | 0.68 (0.06) | 0.94 (0.33) | 0.43 | 2.1 (0.5) | 6.8 (5.1) | 0.85 |
+| Ginebra, día | 0.40 | −0.02 (0.30) | 0.77 (1.86) | 0.67 | 0.4 (0.4) | 2.7 (2.4) | 0.87 |
+| Ginebra, noche | 0.39 | 0.70 (0.13) | 0.00 (1.08) | 0.52 | 0.4 (0.5) | 9.4 (6.7) | 0.30 |
+
+Los errores de un mismo recorrido están muy correlacionados a pocos segundos
+($\hat\phi$ de 0.87 a 0.93 por segundo) y la correlación desaparece al minuto
+(menos de 0.02 a 60 s). Los efectos entre recorridos tienen errores estándar
+entre 5 y 13 veces mayores que los efectos dentro: con 45 a 90 recorridos y
+corrimientos de nivel de unos 9 a 11 dB, la comparación entre recorridos
+aporta poca información. Por eso la igualdad casi nunca puede rechazarse. La
+excepción es la velocidad en Gandhinagar de día (p = 0.02): los recorridos más
+rápidos son más ruidosos de lo que anticipa el efecto dentro (1.33 frente a
+0.56 dB por m/s), como ya sugería la regresión global.
+
+Dentro de los recorridos, el efecto de la velocidad se mantiene con la
+correlación temporal en Gandhinagar y en Ginebra de noche (0.56 a 0.70 dB por
+m/s). En Ginebra de día desaparece (−0.02 ± 0.30), aunque con efectos fijos
+era de 1.60 (0.48). Como el modelo con correlación temporal compara sobre todo
+mediciones separadas por pocos segundos, en Ginebra de día, donde se midió
+mayormente a pie, la velocidad se asocia con el nivel a lo largo del
+recorrido, pero no entre mediciones cercanas en el tiempo. Ese patrón es
+compatible con que allí la velocidad marque el tramo o el modo de
+desplazamiento más que un efecto del propio movimiento. El rumbo dentro de los
+recorridos sigue distinguiéndose de cero en Gandhinagar (p = 0.03 de día y
+p = 0.0001 de noche), con amplitudes de 0.8 y 2.1 dB, es decir, de 1.5 a 4.3 dB
+entre el rumbo más ruidoso y el más silencioso. En Ginebra no se distingue
+(p = 0.24 y 0.98), ni siquiera de día en interacción con la velocidad.
+
 **El fin de semana, estimado entre recorridos, es más incierto.** Diferencia
 entre fines de semana y días hábiles, en dB:
 
-| | GWR: mediana local | Regresión global: error estándar común / robusto | Modelo jerárquico |
-|---|---|---|---|
-| Gandhinagar, día | −0.2 | +4.1 (0.5 / 3.2) | −0.9 (4.5) |
-| Gandhinagar, noche | −6.4 | −11.8 (0.8 / 2.8) | −3.5 (2.5) |
-| Ginebra, día | +2.0 | +2.9 (0.9 / 7.3) | +9.2 (3.6) |
-| Ginebra, noche | +7.0 | +11.5 (1.0 / 1.5) | +13.1 (4.8) |
+| | GWR: mediana local | Regresión global: error estándar común / robusto | Modelo jerárquico | Modelo dentro-entre |
+|---|---|---|---|---|
+| Gandhinagar, día | −0.2 | +4.1 (0.5 / 3.2) | −0.9 (4.5) | +3.0 (4.1) |
+| Gandhinagar, noche | −6.4 | −11.8 (0.8 / 2.8) | −3.5 (2.5) | −4.8 (2.9) |
+| Ginebra, día | +2.0 | +2.9 (0.9 / 7.3) | +9.2 (3.6) | +5.3 (4.4) |
+| Ginebra, noche | +7.0 | +11.5 (1.0 / 1.5) | +13.1 (4.8) | +20.7 (5.2) |
 
 Como cada recorrido ocurre en un solo día, este efecto no puede estimarse
-dentro de los recorridos. El modelo jerárquico lo estima comparando
-recorridos, con la incertidumbre que corresponde a esa comparación. En
-Gandhinagar de noche mantiene el signo negativo, pero no se distingue de cero;
-en Ginebra, los fines de semana más ruidosos sí se distinguen. Aun así, se
-comparan recorridos distintos, y la diferencia puede reflejar dispositivos o
-personas distintas además del día.
+dentro de los recorridos. El modelo jerárquico y el dentro-entre lo estiman
+comparando recorridos, con la incertidumbre que corresponde a esa comparación.
+En Gandhinagar de noche mantiene el signo negativo, pero no se distingue de
+cero en ninguno de los dos. En Ginebra, el modelo dentro-entre, que además
+tiene en cuenta la velocidad, el rumbo y la hora medias de cada recorrido, lo
+lleva a +5.3 dB de día, que ya no se distingue de cero, y a +20.7 dB de noche.
+Que la estimación cambie tanto al agregar características de los recorridos,
+con solo 45 recorridos de noche, indica que el fin de semana se confunde con
+otras diferencias entre ellos; en ese modelo, la hora media del recorrido
+también tiene coeficientes grandes (−12 y −21 dB en sus dos términos). Además,
+se comparan recorridos distintos, y la diferencia puede reflejar dispositivos
+o personas distintas además del día.
 
 **La varianza depende de la calibración.** La prueba de razón de verosimilitud
 rechaza la varianza común en los cuatro casos (p < 1e−69). El desvío estándar
@@ -645,28 +776,97 @@ casos. La de rumbo se conserva en menos del 40% en Gandhinagar y prácticamente
 desaparece en Ginebra de día (4%): allí, la etiqueta de cañón urbano refleja
 sobre todo diferencias entre recorridos.
 
+### Recorridos que sostienen cada ubicación
+
+El número efectivo de recorridos indica de cuántos recorridos distintos sale,
+en la práctica, cada estimación local. $\hat\tau$ es el desvío de los
+corrimientos de nivel en el modelo jerárquico, y $\hat\tau/\sqrt{N_{\text{ef}}}$,
+cuánto puede estar corrido el nivel local por los teléfonos:
+
+| | $\hat\tau$ | Mediana de $N_{\text{ef}}$ | Ubicaciones con $N_{\text{ef}} \lt 2$ | Ubicaciones con $N_{\text{ef}} \ge 4$ | Mediana de $\hat\tau/\sqrt{N_{\text{ef}}}$ |
+|---|---|---|---|---|---|
+| Gandhinagar, día | 12.3 dB | 5.1 | 2% | 76% | 5.5 dB |
+| Gandhinagar, noche | 10.3 dB | 3.2 | 25% | 42% | 5.8 dB |
+| Ginebra, día | 9.0 dB | 6.9 | 6% | 75% | 3.4 dB |
+| Ginebra, noche | 8.5 dB | 4.9 | 30% | 54% | 3.8 dB |
+
+De noche, entre el 25% y el 30% de las ubicaciones tiene menos de dos
+recorridos efectivos: allí, el nivel local puede estar corrido entre 6 y 10 dB
+por el teléfono. El R² local es mayor donde aportan menos recorridos: la
+correlación de Spearman entre el R² local y $N_{\text{ef}}$ es de −0.74 en
+Gandhinagar de noche, de −0.45 y −0.27 en Ginebra de día y de noche, y de
+−0.18 en Gandhinagar de día. Es lo esperable si un recorrido que forma su
+propio vecindario se ajusta a sí mismo.
+
+**La base estacionaria de Ginebra se apoya en pocos recorridos.** Mediana de
+$N_{\text{ef}}$ por etiqueta y, entre paréntesis, porcentaje de sus
+ubicaciones con $N_{\text{ef}} \lt 2$:
+
+| | Predominio de la velocidad | Cañón urbano / direccional | Base estacionaria | Ruido uniforme | Transición / mixto | Anómalo / a revisar |
+|---|---|---|---|---|---|---|
+| Gandhinagar, día | 11.5 (1%) | 5.1 (0%) | 4.7 (3%) | 4.8 (0%) | 5.1 (2%) | 4.3 (0%) |
+| Gandhinagar, noche | 4.2 (17%) | 2.4 (41%) | 2.7 (21%) | 3.2 (13%) | 3.3 (24%) | 3.0 (18%) |
+| Ginebra, día | 6.2 (21%) | 6.1 (0%) | 2.4 (17%) | 8.8 (0%) | 7.9 (0%) | 7.4 (0%) |
+| Ginebra, noche | 2.4 (40%) | 4.5 (19%) | 1.0 (73%) | 8.1 (0%) | 7.6 (21%) | 2.5 (39%) |
+
+En Ginebra, la base estacionaria es la etiqueta con menos recorridos detrás.
+De noche, el 73% de sus ubicaciones tiene menos de dos recorridos efectivos, y
+su nivel puede estar corrido 8.4 dB en la mediana, frente a 3.0 a 4.0 dB en
+cañón urbano, ruido uniforme y transición. Como esa etiqueta se
+asigna por un intercepto alto, en Ginebra puede reflejar el nivel de un
+teléfono más que el del lugar; eso también explica en parte su R² local alto.
+En Gandhinagar de noche, la etiqueta con menos recorridos es cañón urbano
+(mediana de 2.4; 41% con menos de dos). En Gandhinagar de día, todas las
+etiquetas tienen una mediana de al menos 4. En Ginebra, el ruido uniforme
+aparece donde más recorridos se promedian (mediana de 8 a 9).
+
+**El acuerdo de las etiquetas de velocidad y rumbo no mejora de forma
+sistemática con más recorridos.** Kappa de Cohen entre la clasificación
+original y la del GWR centrado por recorrido, según $N_{\text{ef}}$, con la
+cantidad de ubicaciones entre paréntesis:
+
+| | $N_{\text{ef}} \lt 2$ | 2 a 4 | 4 o más |
+|---|---|---|---|
+| Gandhinagar, día | 0.09 (51) | −0.03 (740) | 0.30 (2473) |
+| Gandhinagar, noche | 0.33 (956) | 0.27 (1252) | 0.19 (1589) |
+| Ginebra, día | 0.00 (156) | 0.00 (488) | −0.12 (1904) |
+| Ginebra, noche | 0.38 (569) | 0.30 (306) | 0.35 (1008) |
+
+El kappa sube con $N_{\text{ef}}$ en Gandhinagar de día, baja en Gandhinagar
+de noche y casi no cambia en Ginebra de noche. En Ginebra de día vale 0 con
+pocos recorridos porque la versión centrada asigna todas esas ubicaciones a
+velocidad. Es decir, el bajo acuerdo no se explica solo por los vecindarios de
+un recorrido: donde aportan varios, las pendientes del GWR incorporan también
+diferencias entre recorridos, que el modelo dentro-entre estima con mucho
+error.
+
 ## Interpretación
 
 En Gandhinagar, donde la mayoría de las mediciones se tomó a velocidad de
 vehículo, el GWR asocia fuertemente el ruido con el rumbo: unos 10 a 14 dB a
 velocidad media. Pero la mayor parte de esa asociación proviene de diferencias
-entre recorridos: dentro de un mismo recorrido, el efecto es de 2 a 3 dB, y el
-patrón espacial de los mapas no se reproduce. Los corredores que muestran los
+entre recorridos: dentro de un mismo recorrido, el efecto es de 1.5 a 4 dB, y
+el patrón espacial de los mapas no se reproduce. Los corredores que muestran los
 mapas reflejan sobre todo qué recorridos, con qué dispositivo y de qué forma de
 medir, pasaron por cada calle y en qué dirección. El efecto que queda dentro de
 los recorridos es compatible con el ruido del propio vehículo, con una
 exposición distinta al tránsito según el sentido o con la geometría de las
 calles. La disminución nocturna de fin de semana aparece en la mayoría de las
-ubicaciones del GWR, pero estimada entre recorridos (−3.5 ± 2.5 dB) no se
+ubicaciones del GWR, pero estimada entre recorridos (−3.5 a −4.8 dB) no se
 distingue de cero.
 
 En Ginebra, las velocidades fueron predominantemente compatibles con
 desplazamientos a pie durante el día, mientras que la franja nocturna presentó
 una mezcla mayor. Allí no se distingue un efecto del rumbo dentro de los
-recorridos, y el modelo explica una parte menor de la variación. Los fines de
-semana más ruidosos se sostienen en el modelo jerárquico (+9 a +13 dB), pero
-comparan recorridos distintos, así que no puede descartarse que reflejen
-diferencias de dispositivo o de quién midió.
+recorridos, y el modelo explica una parte menor de la variación. De día, la
+velocidad se asocia con el nivel a lo largo de cada recorrido, pero no entre
+mediciones separadas por pocos segundos, lo que sugiere que marca el tramo más
+que el desplazamiento. Los fines de semana parecen más ruidosos, pero la
+estimación cambia mucho según qué características de los recorridos se tengan
+en cuenta (de +5 a +21 dB) y compara recorridos distintos, así que no puede
+descartarse que refleje diferencias de dispositivo, de horario o de quién
+midió. Además, la base estacionaria de Ginebra depende en buena parte de uno o
+dos recorridos por ubicación.
 
 Como las dos ciudades se midieron de forma distinta, no puede separarse cuánto
 de las diferencias entre ellas corresponde a las ciudades y cuánto al modo de
@@ -686,26 +886,35 @@ medición. Los resultados describen asociaciones, no efectos causales.
 - **Un modelo espacial que ignora los recorridos confunde el lugar con quién
   midió.** Los patrones de los mapas del GWR reflejan en buena parte qué
   recorridos pasaron por cada zona. El R² local y la autocorrelación de los
-  residuos se inflan porque cada recorrido forma su propio vecindario, y los
-  errores estándar locales exageran la significación. Por eso el GWR describe
+  residuos se inflan porque cada recorrido forma su propio vecindario: el R²
+  local es mayor donde aportan menos recorridos. Además, los errores estándar
+  locales exageran la significación. Por eso el GWR describe
   la muestra, pero anticipa poco el nivel de recorridos nuevos: su error fuera
   de muestra (8.6 a 12.2 dB) es cercano al de usar la media. Aun conociendo el
   corrimiento de cada recorrido, ningún modelo predice el resto del recorrido
   mejor que su nivel inicial.
-- **Donde un lugar fue medido por un solo recorrido, no puede separarse la
-  calle del dispositivo.** En Ginebra, alrededor del 60% de los puntos no
-  comparte su hexágono con ningún otro recorrido; allí, una diferencia de
-  nivel puede deberse tanto al lugar como al teléfono.
+- **Donde un lugar fue medido por uno o dos recorridos, no puede separarse la
+  calle del dispositivo, y eso afecta sobre todo a algunas etiquetas.** En
+  Ginebra, alrededor del 60% de los puntos no comparte su hexágono con ningún
+  otro recorrido. De noche, entre el 25% y el 30% de las ubicaciones tiene
+  menos de dos recorridos efectivos, con un corrimiento posible de 6 a 10 dB
+  en el nivel local. En Ginebra, la base estacionaria es la etiqueta más
+  expuesta (el 73% de sus ubicaciones nocturnas está en esa situación); en
+  Gandhinagar de noche, el cañón urbano (41%).
 - **Lo que se sostiene al separar los recorridos es más acotado.** La
-  velocidad se asocia con más ruido dentro de un mismo recorrido en los cuatro
-  casos (0.45 a 1.7 dB por m/s). El rumbo tiene un efecto real pero chico en
-  Gandhinagar (2 a 3 dB entre el rumbo más ruidoso y el más silencioso) y no
-  se distingue en Ginebra. El fin de semana solo puede compararse entre
-  recorridos: los fines de semana más ruidosos de Ginebra se sostienen, y la
-  disminución nocturna de Gandhinagar no se distingue de cero. En las
-  etiquetas, la clasificación por velocidad se conserva en buena parte al
-  separar los recorridos; la de rumbo, poco en Gandhinagar y casi nada en
-  Ginebra de día.
+  velocidad se asocia con más ruido dentro de un mismo recorrido en
+  Gandhinagar y en Ginebra de noche (0.45 a 0.7 dB por m/s), también entre
+  mediciones separadas por pocos segundos; en Ginebra de día, solo con los
+  cambios lentos a lo largo del recorrido. El rumbo tiene un efecto real pero
+  chico en Gandhinagar (1.5 a 4 dB entre el rumbo más ruidoso y el más
+  silencioso) y no se distingue en Ginebra. Las diferencias entre recorridos,
+  en cambio, se estiman con errores 5 a 13 veces mayores. Por eso el fin de
+  semana, que solo puede compararse entre recorridos, cambia mucho según qué
+  se tenga en cuenta, y la disminución nocturna de Gandhinagar no se distingue
+  de cero. En las etiquetas, la clasificación por velocidad se conserva en
+  buena parte al separar los recorridos; la de rumbo, poco en Gandhinagar y
+  casi nada en Ginebra de día, y el acuerdo no mejora de forma sistemática
+  donde aportan más recorridos.
 
 ## Limitaciones
 
@@ -775,6 +984,26 @@ medición. Los resultados describen asociaciones, no efectos causales.
   que los puntos de un mismo recorrido se parecen. Por eso,
   $\lvert z \rvert \ge 2$ señala ubicaciones que merecen atención, sin
   constituir pruebas de significación.
+
+- El número efectivo de recorridos supone que los corrimientos de los
+  recorridos son independientes, y describe exactamente solo el arrastre del
+  intercepto; para las pendientes es una aproximación. La parte entre
+  recorridos del modelo dentro-entre se estima con 45 a 90 recorridos y unos
+  diez términos por recorrido, así que es imprecisa y sensible a qué variables
+  se incluyen, como muestra el fin de semana.
+
+## Referencias
+
+- Bell, A. y Jones, K. (2015). Explaining fixed effects: random effects
+  modeling of time-series cross-sectional and panel data. *Political Science
+  Research and Methods*, 3(1), 133–153.
+- Hausman, J. A. (1978). Specification tests in econometrics.
+  *Econometrica*, 46(6), 1251–1271.
+- Kish, L. (1965). *Survey Sampling*. Wiley.
+- Mundlak, Y. (1978). On the pooling of time series and cross section data.
+  *Econometrica*, 46(1), 69–85.
+- Pinheiro, J. C. y Bates, D. M. (2000). *Mixed-Effects Models in S and
+  S-PLUS*. Springer.
 
 ## Contenido
 

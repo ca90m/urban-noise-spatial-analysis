@@ -16,13 +16,23 @@ weekday/weekend.
 - **On the maps, heading matters much more in Gandhinagar than in Geneva, but
   mostly because of differences between tracks.** GWR associates typical gaps
   of 10 to 14 dB with heading in Gandhinagar. A hierarchical model, which
-  separates each track's own level, reduces the effect to 2 to 3 dB within a
-  single track; in Geneva it cannot be distinguished.
-- **Speed does have an effect within each track:** 0.45 to 1.7 dB per m/s,
-  depending on the case.
-- **Weekends can only be compared across different tracks.** Once that is taken
-  into account, the nighttime decrease in Gandhinagar (−3.5 ± 2.5 dB) cannot be
-  distinguished from zero, while Geneva's louder weekends (+9 to +13 dB) hold.
+  separates each track's own level, reduces the effect to between 1.5 and 4 dB
+  within a single track, depending on the model; in Geneva it cannot be
+  distinguished.
+- **Speed has an effect within each track** of 0.45 to 0.7 dB per m/s in
+  Gandhinagar and in nighttime Geneva, which holds between measurements a few
+  seconds apart. In daytime Geneva, measured mostly on foot, the association
+  (1.6 dB per m/s) appears only with slow changes along the track.
+- **Weekends can only be compared across different tracks, and that comparison
+  is unstable.** The nighttime decrease in Gandhinagar (−3.5 to −4.8 dB) cannot
+  be distinguished from zero. In Geneva, weekends look louder, but the estimate
+  ranges from +5 to +21 dB depending on which track characteristics are taken
+  into account.
+- **How far a label can be trusted depends on how many tracks went through the
+  place.** At night, 25% to 30% of locations have fewer than two effective
+  tracks. In Geneva, the stationary base is the most exposed label: at night,
+  73% of its locations are in that situation, and its level may be offset by
+  about 8 dB by the phone.
 - **NoiseCapture's hourly profile proved unreliable as a control in Geneva.**
   Most points do not share their hexagon with other tracks, and the fit
   depended heavily on how that profile was built. The main model therefore
@@ -244,6 +254,80 @@ track structure. Finally, GWR was refitted on track-centred variables with the
 same spatial weights as the main model, to compare the
 $\beta_{\text{align}}$ maps.
 
+**Within-between model with temporal correlation.** The models above estimate
+a single coefficient per variable and assume that, given each track's level,
+its points are independent. To separate the within-track effect from the
+between-track effect in a single equation, the within-between model was
+fitted (Mundlak, 1978; Bell and Jones, 2015). Each variable is split into its
+deviation from the track mean and that mean:
+
+```math
+\begin{aligned}
+L_{ij} &= \beta_0 + (\mathbf{x}_{ij} - \bar{\mathbf{x}}_j)^\top \boldsymbol\beta_W + \bar{\mathbf{x}}_j^\top \boldsymbol\beta_B + \beta_{\text{weekend}}\, w_j + u_j + \varepsilon_{ij} \\
+u_j &\sim N(0, \tau^2), \qquad \varepsilon_{ij} \sim N\big(0, \sigma^2_{g(j)}\big), \qquad \mathrm{Corr}(\varepsilon_{ij}, \varepsilon_{kj}) = \phi^{\,|t_{ij} - t_{kj}|}
+\end{aligned}
+```
+
+$\boldsymbol\beta_W$ is estimated from variation within each track, with the
+same device and the same calibration, as in the fixed-effects model.
+$\boldsymbol\beta_B$ is estimated from differences between track means.
+$t_{ij}$ is the time in seconds since the start of the track: errors follow a
+continuous-time first-order autoregressive process (Pinheiro and Bates, 2000),
+so two measurements 10 s apart have correlation $\phi^{10}$. The per-gain-group
+variance is the same as in the hierarchical model. Interactions are split
+after multiplying, and the weekend enters only between tracks.
+
+With this correlation, the estimator gives more weight to changes between
+measurements close in time. If the correlation between consecutive
+measurements is $\rho$, it is roughly equivalent to fitting
+
+```math
+L_{ij} - \rho\, L_{i-1,j} = (\mathbf{x}_{ij} - \rho\, \mathbf{x}_{i-1,j})^\top \boldsymbol\beta + \eta_{ij}
+```
+
+which, with $\rho$ close to 1, compares each measurement with the previous
+one. So $\boldsymbol\beta_W$ mostly reflects changes over a few seconds,
+whereas the fixed-effects model weights slow changes along the track equally.
+
+For speed and heading, the hypothesis
+
+```math
+H_0:\ \beta_W = \beta_B
+```
+
+is tested with a Wald test. If it is rejected, the association between tracks
+differs from the one observed within them, for example because tracks also
+differ in device or measurement mode. This is Mundlak's version of the Hausman
+(1978) test. For heading, the test is joint over its four terms (the two
+heading terms and their speed interactions), and the effect is summarized by
+its amplitude at mean speed, like $\beta_{\text{align}}$.
+
+**Effective number of tracks.** Each location's coefficients are estimated
+from nearby points, which may come from many tracks or from just one. To
+measure this, the GWR weights of each track $j$ at location $u$ were summed
+and the effective number of tracks was computed, an adaptation of Kish's
+(1965) effective sample size:
+
+```math
+\omega_j(u) = \frac{\sum_{i \in j} w_i(u)}{\sum_i w_i(u)}, \qquad N_{\text{eff}}(u) = \frac{1}{\sum_j \omega_j(u)^2}
+```
+
+It equals 1 if all the weight comes from a single track and $K$ if $K$ tracks
+weigh the same. If the local model had only an intercept, it would be a
+weighted average of levels and would carry over the tracks' offsets. Assuming
+independent offsets with variance $\tau^2$:
+
+```math
+\hat\beta_0(u) \approx \mu(u) + \sum_j \omega_j(u)\, u_j, \qquad \mathrm{Var}\Big(\sum_j \omega_j(u)\, u_j\Big) = \tau^2 \sum_j \omega_j(u)^2 = \frac{\tau^2}{N_{\text{eff}}(u)}
+```
+
+where $\mu(u)$ is the level of the place. The deviation
+$\tau/\sqrt{N_{\text{eff}}}$ is used as a measure of how much of the local
+level may be due to the phones, with $\tau$ estimated by each case's
+hierarchical model. It is approximate: with covariates, the exact carry-over
+also depends on them, and $\tau$ includes real differences between the areas
+each track covered, so it works as an upper bound.
+
 ## Operational labels
 
 Each location is assigned a regime based on which of its local
@@ -289,7 +373,8 @@ intercept is near the median (within 0.33 IQR).
 
 Labels are computed from GWR coefficients, which mix differences within each
 track and between tracks. How far they hold once these are separated is
-assessed in *Effects within tracks*.
+assessed in *Effects within tracks*, and how many tracks lie behind each
+location in *Tracks behind each location*.
 
 ## Findings
 
@@ -512,9 +597,10 @@ the global regression and fixed effects, model-based for the hierarchical
 model. The hierarchical model's errors assume that, given each track's level,
 its points are independent. Since consecutive points resemble each other,
 they are optimistic for effects that vary within tracks; for those,
-significance is judged with the fixed-effects model's clustered errors. For
-the weekend, which can only be compared across tracks, the hierarchical model
-is the appropriate one.
+significance is judged with the fixed-effects model's clustered errors and
+with the within-between model, which accounts for that correlation. For the
+weekend, which can only be compared across tracks, the hierarchical and
+within-between models are used.
 
 **Most of the heading effect on the maps is a difference between tracks.**
 Amplitude of the heading effect at mean speed, in dB:
@@ -553,23 +639,64 @@ four cases. In Gandhinagar, roughly 40% to 50% of the global regression's
 association came from differences between tracks, for example between walking and vehicle
 measurements, or between devices.
 
+**Separating both effects in one equation shows that the precise information
+lies within tracks.** Results of the within-between model, with temporal
+correlation and gain-dependent variance. Speed is in dB per m/s and heading is
+an amplitude in dB; standard errors are in parentheses, and the p column is the
+test of $\beta_W = \beta_B$:
+
+| | Correlation at 10 s | Speed: within | Speed: between | p | Heading: within | Heading: between | p |
+|---|---|---|---|---|---|---|---|
+| Gandhinagar, day | 0.25 | 0.56 (0.04) | 1.33 (0.34) | 0.02 | 0.8 (0.3) | 1.4 (2.3) | 0.07 |
+| Gandhinagar, night | 0.50 | 0.68 (0.06) | 0.94 (0.33) | 0.43 | 2.1 (0.5) | 6.8 (5.1) | 0.85 |
+| Geneva, day | 0.40 | −0.02 (0.30) | 0.77 (1.86) | 0.67 | 0.4 (0.4) | 2.7 (2.4) | 0.87 |
+| Geneva, night | 0.39 | 0.70 (0.13) | 0.00 (1.08) | 0.52 | 0.4 (0.5) | 9.4 (6.7) | 0.30 |
+
+Errors within a track are strongly correlated over a few seconds
+($\hat\phi$ of 0.87 to 0.93 per second), and the correlation vanishes within
+a minute (under 0.02 at 60 s). Between-track effects have standard errors 5 to
+13 times larger than within-track effects: with 45 to 90 tracks and level
+offsets of about 9 to 11 dB, comparing tracks carries little information. So
+equality can almost never be rejected. The exception is speed in daytime
+Gandhinagar (p = 0.02): faster tracks are louder than the within-track effect
+predicts (1.33 vs 0.56 dB per m/s), as the global regression already
+suggested.
+
+Within tracks, the speed effect holds with temporal correlation in Gandhinagar
+and in nighttime Geneva (0.56 to 0.70 dB per m/s). In daytime Geneva it
+vanishes (−0.02 ± 0.30), although with fixed effects it was 1.60 (0.48).
+Since the model with temporal correlation mostly compares measurements a few
+seconds apart, in daytime Geneva, measured mostly on foot, speed is associated
+with level along the track but not between measurements close in time. That
+pattern is consistent with speed marking the stretch or the travel mode there,
+rather than an effect of the movement itself. Heading within tracks remains
+distinguishable from zero in Gandhinagar (p = 0.03 by day and p = 0.0001 at
+night), with amplitudes of 0.8 and 2.1 dB, i.e. 1.5 to 4.3 dB between the
+loudest and quietest heading. In Geneva it cannot be distinguished (p = 0.24
+and 0.98), not even by day in interaction with speed.
+
 **The weekend effect, estimated across tracks, is more uncertain.**
 Weekend-minus-weekday difference, in dB:
 
-| | GWR: local median | Global regression: common / clustered standard error | Hierarchical model |
-|---|---|---|---|
-| Gandhinagar, day | −0.2 | +4.1 (0.5 / 3.2) | −0.9 (4.5) |
-| Gandhinagar, night | −6.4 | −11.8 (0.8 / 2.8) | −3.5 (2.5) |
-| Geneva, day | +2.0 | +2.9 (0.9 / 7.3) | +9.2 (3.6) |
-| Geneva, night | +7.0 | +11.5 (1.0 / 1.5) | +13.1 (4.8) |
+| | GWR: local median | Global regression: common / clustered standard error | Hierarchical model | Within-between model |
+|---|---|---|---|---|
+| Gandhinagar, day | −0.2 | +4.1 (0.5 / 3.2) | −0.9 (4.5) | +3.0 (4.1) |
+| Gandhinagar, night | −6.4 | −11.8 (0.8 / 2.8) | −3.5 (2.5) | −4.8 (2.9) |
+| Geneva, day | +2.0 | +2.9 (0.9 / 7.3) | +9.2 (3.6) | +5.3 (4.4) |
+| Geneva, night | +7.0 | +11.5 (1.0 / 1.5) | +13.1 (4.8) | +20.7 (5.2) |
 
 Since each track takes place on a single day, this effect cannot be estimated
-within tracks. The hierarchical model estimates it by comparing tracks, with
-the uncertainty that comparison carries. In nighttime Gandhinagar it keeps
-the negative sign but cannot be distinguished from zero; in Geneva, the
-louder weekends are distinguishable. Even so, different tracks are being
-compared, and the difference may reflect different devices or people as well
-as the day.
+within tracks. The hierarchical and within-between models estimate it by
+comparing tracks, with the uncertainty that comparison carries. In nighttime
+Gandhinagar it keeps the negative sign but cannot be distinguished from zero in
+either. In Geneva, the within-between model, which also accounts for each
+track's mean speed, heading and hour, moves it to +5.3 dB by day, no longer
+distinguishable from zero, and to +20.7 dB at night. Such a large change when
+track characteristics are added, with only 45 tracks at night, indicates that
+the weekend is confounded with other differences between tracks; in that
+model, the track's mean hour also has large coefficients (−12 and −21 dB on its
+two terms). Moreover, different tracks are being compared, and the difference
+may reflect different devices or people as well as the day.
 
 **Variance depends on calibration.** The likelihood-ratio test rejects a
 common variance in all four cases (p < 1e−69). The residual standard
@@ -607,26 +734,92 @@ locations in all four cases. The heading classification is kept at under 40%
 in Gandhinagar and practically vanishes in daytime Geneva (4%): there, the
 urban-canyon label mostly reflects differences between tracks.
 
+### Tracks behind each location
+
+The effective number of tracks shows how many distinct tracks each local
+estimate comes from in practice. $\hat\tau$ is the standard deviation of level
+offsets in the hierarchical model, and $\hat\tau/\sqrt{N_{\text{eff}}}$ is how
+far the local level may be offset by the phones:
+
+| | $\hat\tau$ | Median $N_{\text{eff}}$ | Locations with $N_{\text{eff}} \lt 2$ | Locations with $N_{\text{eff}} \ge 4$ | Median $\hat\tau/\sqrt{N_{\text{eff}}}$ |
+|---|---|---|---|---|---|
+| Gandhinagar, day | 12.3 dB | 5.1 | 2% | 76% | 5.5 dB |
+| Gandhinagar, night | 10.3 dB | 3.2 | 25% | 42% | 5.8 dB |
+| Geneva, day | 9.0 dB | 6.9 | 6% | 75% | 3.4 dB |
+| Geneva, night | 8.5 dB | 4.9 | 30% | 54% | 3.8 dB |
+
+At night, 25% to 30% of locations have fewer than two effective tracks: there,
+the local level may be offset by 6 to 10 dB by the phone. Local R² is higher
+where fewer tracks contribute: the Spearman correlation between local R² and
+$N_{\text{eff}}$ is −0.74 in nighttime Gandhinagar, −0.45 and −0.27 in daytime
+and nighttime Geneva, and −0.18 in daytime Gandhinagar. This is what one would
+expect if a track that forms its own neighbourhood fits itself.
+
+**Geneva's stationary base rests on few tracks.** Median $N_{\text{eff}}$ by
+label and, in parentheses, the share of its locations with
+$N_{\text{eff}} \lt 2$:
+
+| | Speed-dominant | Urban canyon / directional | Stationary base | Uniform noise | Transitional / mixed | Anomalous / review |
+|---|---|---|---|---|---|---|
+| Gandhinagar, day | 11.5 (1%) | 5.1 (0%) | 4.7 (3%) | 4.8 (0%) | 5.1 (2%) | 4.3 (0%) |
+| Gandhinagar, night | 4.2 (17%) | 2.4 (41%) | 2.7 (21%) | 3.2 (13%) | 3.3 (24%) | 3.0 (18%) |
+| Geneva, day | 6.2 (21%) | 6.1 (0%) | 2.4 (17%) | 8.8 (0%) | 7.9 (0%) | 7.4 (0%) |
+| Geneva, night | 2.4 (40%) | 4.5 (19%) | 1.0 (73%) | 8.1 (0%) | 7.6 (21%) | 2.5 (39%) |
+
+In Geneva, the stationary base is the label with the fewest tracks behind it.
+At night, 73% of its locations have fewer than two effective tracks, and its
+level may be offset by 8.4 dB at the median, against 3.0 to 4.0 dB for urban
+canyon, uniform noise and transitional. Since that label is assigned for a high
+intercept, in Geneva it may reflect a phone's level more than the place's; this
+also partly explains its high local R². In nighttime Gandhinagar, the label
+with the fewest tracks is urban canyon (median 2.4; 41% with fewer than two).
+In daytime Gandhinagar, every label has a median of at least 4. In Geneva,
+uniform noise appears where the most tracks are averaged (median of 8 to 9).
+
+**Agreement of the speed and heading labels does not improve systematically
+with more tracks.** Cohen's kappa between the original classification and the
+one from track-centred GWR, by $N_{\text{eff}}$, with the number of locations
+in parentheses:
+
+| | $N_{\text{eff}} \lt 2$ | 2 to 4 | 4 or more |
+|---|---|---|---|
+| Gandhinagar, day | 0.09 (51) | −0.03 (740) | 0.30 (2473) |
+| Gandhinagar, night | 0.33 (956) | 0.27 (1252) | 0.19 (1589) |
+| Geneva, day | 0.00 (156) | 0.00 (488) | −0.12 (1904) |
+| Geneva, night | 0.38 (569) | 0.30 (306) | 0.35 (1008) |
+
+Kappa rises with $N_{\text{eff}}$ in daytime Gandhinagar, falls in nighttime
+Gandhinagar and barely changes in nighttime Geneva. In daytime Geneva it is 0
+with few tracks because the centred version assigns all those locations to
+speed. In other words, the low agreement is not explained only by
+single-track neighbourhoods: where several contribute, GWR slopes also absorb
+differences between tracks, which the within-between model estimates with
+large error.
+
 ## Interpretation
 
 In Gandhinagar, where most measurements were taken at vehicle speeds, GWR
 strongly ties noise to heading: about 10 to 14 dB at mean speed. But most of
 that association comes from differences between tracks: within a single track
-the effect is 2 to 3 dB, and the spatial pattern of the maps is not
+the effect is 1.5 to 4 dB, and the spatial pattern of the maps is not
 reproduced. The corridors shown on the maps mostly reflect which tracks, with
 which device and measurement mode, went along each street and in which
 direction. The effect that remains within tracks is consistent with the
 vehicle's own noise, with different exposure to traffic depending on the
 direction, or with street geometry. The nighttime weekend decrease appears at
-most GWR locations, but estimated across tracks (−3.5 ± 2.5 dB) it cannot be
-distinguished from zero.
+most GWR locations, but estimated across tracks (−3.5 to −4.8 dB) it cannot
+be distinguished from zero.
 
 In Geneva, speeds were predominantly consistent with walking by day, while
 the nighttime period showed a broader mix. There, no heading effect can be
 distinguished within tracks, and the model explains a smaller share of the
-variation. Louder weekends hold in the hierarchical model (+9 to +13 dB), but
-they compare different tracks, so differences in device or in who measured
-cannot be ruled out.
+variation. By day, speed is associated with level along each track but not
+between measurements a few seconds apart, which suggests it marks the stretch
+rather than the movement. Weekends look louder, but the estimate changes a lot
+depending on which track characteristics are taken into account (+5 to
++21 dB) and compares different tracks, so differences in device, timing or
+who measured cannot be ruled out. Moreover, Geneva's stationary base largely
+depends on one or two tracks per location.
 
 Since the two cities were measured differently, the share of the differences
 between them due to the cities rather than the measurement mode cannot be
@@ -645,24 +838,32 @@ separated. The results describe associations, not causal effects.
 - **A spatial model that ignores tracks confuses place with who measured.**
   The patterns on the GWR maps largely reflect which tracks went through each
   area. Local R² and residual autocorrelation are inflated because each track
-  forms its own neighbourhood, and local standard errors overstate
-  significance. GWR therefore describes the sample but says little about the
+  forms its own neighbourhood: local R² is higher where fewer tracks
+  contribute. Local standard errors also overstate significance. GWR therefore describes the sample but says little about the
   level of new tracks: its out-of-sample error (8.6 to 12.2 dB) is close to
   that of the mean. Even knowing each track's offset, no model predicts the
   rest of the track better than its starting level.
-- **Where a place was measured by a single track, the street cannot be
-  separated from the device.** In Geneva, about 60% of points do not share
-  their hexagon with any other track; there, a level difference may come from
-  the place or from the phone.
+- **Where a place was measured by one or two tracks, the street cannot be
+  separated from the device, and this affects some labels in particular.** In
+  Geneva, about 60% of points do not share their hexagon with any other
+  track. At night, 25% to 30% of locations have fewer than two effective
+  tracks, with a possible offset of 6 to 10 dB in the local level. In Geneva,
+  the stationary base is the most exposed label (73% of its nighttime
+  locations are in that situation); in nighttime Gandhinagar, urban canyon
+  (41%).
 - **What holds once tracks are separated is narrower.** Speed is associated
-  with more noise within a single track in all four cases (0.45 to 1.7 dB per
-  m/s). Heading has a real but small effect in Gandhinagar (2 to 3 dB between
-  the loudest and quietest heading) and cannot be distinguished in Geneva.
-  Weekends can only be compared across tracks: Geneva's louder weekends hold,
-  and Gandhinagar's nighttime decrease cannot be distinguished from zero. In
-  the labels, the speed classification largely holds once tracks are
-  separated; the heading classification holds little in Gandhinagar and
-  hardly at all in daytime Geneva.
+  with more noise within a single track in Gandhinagar and nighttime Geneva
+  (0.45 to 0.7 dB per m/s), also between measurements a few seconds apart; in
+  daytime Geneva, only with slow changes along the track. Heading has a real
+  but small effect in Gandhinagar (1.5 to 4 dB between the loudest and
+  quietest heading) and cannot be distinguished in Geneva. Differences between
+  tracks, by contrast, are estimated with errors 5 to 13 times larger. So the
+  weekend, which can only be compared across tracks, changes a lot depending
+  on what is taken into account, and Gandhinagar's nighttime decrease cannot
+  be distinguished from zero. In the labels, the speed classification largely
+  holds once tracks are separated; the heading classification holds little in
+  Gandhinagar and hardly at all in daytime Geneva, and agreement does not
+  improve systematically where more tracks contribute.
 
 ## Limitations
 
@@ -724,6 +925,26 @@ separated. The results describe associations, not causal effects.
   treat every point as independent, ignoring that points from the same track
   resemble each other. So $\lvert z \rvert \ge 2$ flags locations worth
   attention rather than significance tests.
+
+- The effective number of tracks assumes that track offsets are independent,
+  and it describes exactly only the carry-over into the intercept; for slopes
+  it is an approximation. The between-track part of the within-between model
+  is estimated from 45 to 90 tracks with about ten track-level terms, so it is
+  imprecise and sensitive to which variables are included, as the weekend
+  shows.
+
+## References
+
+- Bell, A. and Jones, K. (2015). Explaining fixed effects: random effects
+  modeling of time-series cross-sectional and panel data. *Political Science
+  Research and Methods*, 3(1), 133–153.
+- Hausman, J. A. (1978). Specification tests in econometrics.
+  *Econometrica*, 46(6), 1251–1271.
+- Kish, L. (1965). *Survey Sampling*. Wiley.
+- Mundlak, Y. (1978). On the pooling of time series and cross section data.
+  *Econometrica*, 46(1), 69–85.
+- Pinheiro, J. C. and Bates, D. M. (2000). *Mixed-Effects Models in S and
+  S-PLUS*. Springer.
 
 ## Contents
 
