@@ -34,7 +34,9 @@ weekday/weekend.
 - **These associations describe the sample but say little about new tracks.**
   When predicting tracks left out of the fit, the mean absolute error was 8.6
   to 12.2 dB, close to what the mean alone achieves (9.7 to 12.0 dB). Between
-  62% and 77% of the variation in level lies between tracks.
+  62% and 77% of the variation in level lies between tracks. If the start of
+  each track is known, the error falls to 4.5 to 7.4 dB, but the model then
+  does no better than the level the track started with.
 
 ## Interactive maps
 
@@ -218,7 +220,8 @@ u_j &\sim N(0, \tau^2), \qquad \varepsilon_{ij} \sim N\big(0, \sigma^2_{g(j)}\bi
 ```
 
 $\mathbf{x}_{ij}$ holds speed, heading, their interactions, hour and the area
-measurement count. $u_j$ is track $j$'s own level, and $g(j)$ is its gain
+measurement count. $u_j$ is track $j$'s level offset, i.e. how far above or
+below expectation it measures, and $g(j)$ is its gain
 group: each observed value in Geneva, where there are few, and quartiles in
 Gandhinagar. The per-group variance was tested with a likelihood-ratio test
 against the common-variance model.
@@ -283,6 +286,10 @@ and each point gets the first one it meets:
 Finally, a non-anomalous point with a tie or weak effects becomes **uniform
 noise** if its predicted level is within 3 dB of its intercept and the
 intercept is near the median (within 0.33 IQR).
+
+Labels are computed from GWR coefficients, which mix differences within each
+track and between tracks. How far they hold once these are separated is
+assessed in *Effects within tracks*.
 
 ## Findings
 
@@ -460,6 +467,41 @@ therefore largely reflects how persistent each track's level offset is. The
 coefficients and maps describe the measured sample; they are not
 relationships that carry over directly to new measurements.
 
+**Knowing the start of a track cuts the error sharply, but the model adds
+nothing to that.** Since most of the error is each track's level offset, it
+was estimated from the start of each test track (cross-calibration). Using
+the first points $C_j$ of track $j$, in time order, the offset is estimated by
+comparing what was measured with what the model predicts from the other
+tracks, and added to the prediction for the rest:
+
+```math
+\hat u_j = \frac{1}{n_c}\sum_{i \in C_j}\big(y_{ij} - \hat y_{ij}\big), \qquad \hat y^{\,\text{cal}}_{ij} = \hat y_{ij} + \hat u_j \quad (i \notin C_j)
+```
+
+In the hierarchical model, fitted within each split, the offset is also shrunk
+according to how much information the calibration points carry, by the
+factor $\hat\tau^2/(\hat\tau^2 + \hat\sigma^2/n_c)$. Mean absolute error on the
+rest of each track, without and with calibration, using the first 20%:
+
+| | GWR | Global regression | Hierarchical model | Training mean |
+|---|---|---|---|---|
+| Gandhinagar, day | 8.9 → 8.3 | 10.8 → 5.8 | 11.2 → 4.5 | 10.0 → 4.6 |
+| Gandhinagar, night | 11.2 → 11.8 | 10.9 → 7.1 | 10.1 → 5.6 | 12.3 → 5.9 |
+| Geneva, day | 11.1 → 7.9 | 12.6 → 7.3 | 11.3 → 7.4 | 11.2 → 7.3 |
+| Geneva, night | 11.4 → 11.1 | 9.7 → 7.6 | 9.7 → 7.3 | 11.9 → 7.1 |
+
+Calibration reduces the error of the global regression, the hierarchical model
+and the mean from 10 to 12 dB to between 4.5 and 7.6 dB, with almost the same
+results using the first 10% or 30%. But once calibrated, the hierarchical
+model does no better than the calibrated training mean, which is simply the
+mean level of the start of the track
+($\bar y_{\text{train}} + \hat u_j = \bar y_{C_j}$): the per-track difference is
+not significant in any case (paired Wilcoxon test with the first 20%,
+p ≥ 0.11). Calibrated GWR does worst. In other words, speed, heading and hour
+have real effects, but small ones next to second-to-second variation. Part of
+the improvement may come from later minutes resembling the first ones (same
+area, same traffic), not only from device calibration.
+
 ### Effects within tracks
 
 The tables compare three global estimates on the same points and terms as the
@@ -537,6 +579,34 @@ night. Without weighting, estimates shift somewhat (for example, the
 within-track heading amplitude in daytime Gandhinagar goes from 1.1 to
 1.9 dB), but the conclusions do not change.
 
+**The speed and heading labels hold only in part.** The speed-versus-heading
+classification behind the labels was recomputed, with the same 75th-percentile
+normalization rules, from the coefficients of GWR fitted on track-centred
+data, and compared with the original using Cohen's kappa:
+
+```math
+\kappa = \frac{p_o - p_e}{1 - p_e}
+```
+
+where $p_o$ is the share of locations with the same class in both versions and
+$p_e$ the share expected by chance. The stationary base cannot be assessed this
+way, since centring by track removes the level of the place.
+
+| | Agreement | $\kappa$ | Keep the speed class | Keep the heading class |
+|---|---|---|---|---|
+| Gandhinagar, day | 53% | 0.24 | 58% | 39% |
+| Gandhinagar, night | 52% | 0.26 | 60% | 38% |
+| Geneva, day | 36% | −0.04 | 57% | 4% |
+| Geneva, night | 60% | 0.37 | 55% | 55% |
+
+Since local coefficients carry a lot of estimation error, $\kappa$ falls short
+of 1 even when the effect exists: on simulated data, the same procedure gives
+about 0.3 when heading acts within tracks and about 0 when it is associated
+only through them. The speed classification is kept at more than half of the
+locations in all four cases. The heading classification is kept at under 40%
+in Gandhinagar and practically vanishes in daytime Geneva (4%): there, the
+urban-canyon label mostly reflects differences between tracks.
+
 ## Interpretation
 
 In Gandhinagar, where most measurements were taken at vehicle speeds, GWR
@@ -578,7 +648,8 @@ separated. The results describe associations, not causal effects.
   forms its own neighbourhood, and local standard errors overstate
   significance. GWR therefore describes the sample but says little about the
   level of new tracks: its out-of-sample error (8.6 to 12.2 dB) is close to
-  that of the mean.
+  that of the mean. Even knowing each track's offset, no model predicts the
+  rest of the track better than its starting level.
 - **Where a place was measured by a single track, the street cannot be
   separated from the device.** In Geneva, about 60% of points do not share
   their hexagon with any other track; there, a level difference may come from
@@ -588,7 +659,10 @@ separated. The results describe associations, not causal effects.
   m/s). Heading has a real but small effect in Gandhinagar (2 to 3 dB between
   the loudest and quietest heading) and cannot be distinguished in Geneva.
   Weekends can only be compared across tracks: Geneva's louder weekends hold,
-  and Gandhinagar's nighttime decrease cannot be distinguished from zero.
+  and Gandhinagar's nighttime decrease cannot be distinguished from zero. In
+  the labels, the speed classification largely holds once tracks are
+  separated; the heading classification holds little in Gandhinagar and
+  hardly at all in daytime Geneva.
 
 ## Limitations
 

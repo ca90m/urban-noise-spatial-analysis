@@ -36,7 +36,9 @@ comparando día y noche, y días de semana y fines de semana.
   recorridos nuevos.** Al predecir recorridos que no participaron del ajuste,
   el error absoluto medio fue de 8.6 a 12.2 dB, cerca del que se obtiene con la
   media (9.7 a 12.0 dB). Entre el 62% y el 77% de la variación del nivel está
-  entre recorridos.
+  entre recorridos. Si se conoce el comienzo de cada recorrido, el error baja a
+  4.5 a 7.4 dB, pero entonces el modelo no mejora al nivel con que empezó el
+  recorrido.
 
 ## Mapas interactivos
 
@@ -231,7 +233,8 @@ u_j &\sim N(0, \tau^2), \qquad \varepsilon_{ij} \sim N\big(0, \sigma^2_{g(j)}\bi
 ```
 
 $\mathbf{x}_{ij}$ reúne la velocidad, el rumbo, sus interacciones, la hora y la
-cantidad de mediciones del área. $u_j$ es el nivel propio del recorrido $j$, y
+cantidad de mediciones del área. $u_j$ es el corrimiento de nivel del recorrido
+$j$, es decir, cuánto mide por encima o por debajo de lo esperado, y
 $g(j)$ es su grupo de ganancia: cada valor observado en Ginebra, donde hay
 pocos, y los cuartiles en Gandhinagar. La varianza por grupo se evaluó con una
 prueba de razón de verosimilitud contra el modelo con varianza común.
@@ -299,6 +302,10 @@ Por último, un punto no anómalo con empate o efectos débiles pasa a **ruido
 uniforme** si su nivel predicho está a no más de 3 dB del intercepto y el
 intercepto está cerca de la mediana (a no más de 0.33 veces el rango
 intercuartílico).
+
+Las etiquetas se calculan con los coeficientes del GWR, que mezclan diferencias
+dentro de cada recorrido y entre recorridos. Cuánto se sostienen al separarlas
+se evalúa en *Efectos dentro de los recorridos*.
 
 ## Resultados
 
@@ -493,6 +500,43 @@ de nivel dentro de cada recorrido. Los coeficientes y los mapas describen la
 muestra medida; no son relaciones que se trasladen directamente a mediciones
 nuevas.
 
+**Conocer el comienzo de un recorrido reduce mucho el error, pero el modelo no
+agrega a eso.** Como la mayor parte del error es el corrimiento de nivel de
+cada recorrido, se probó estimarlo con el comienzo del recorrido de prueba
+(calibración cruzada). Con los primeros puntos $C_j$ del recorrido $j$, en
+orden temporal, el corrimiento se estima comparando lo medido con lo que el
+modelo predice a partir de los demás recorridos, y se suma a la predicción del
+resto:
+
+```math
+\hat u_j = \frac{1}{n_c}\sum_{i \in C_j}\big(y_{ij} - \hat y_{ij}\big), \qquad \hat y^{\,\text{cal}}_{ij} = \hat y_{ij} + \hat u_j \quad (i \notin C_j)
+```
+
+En el modelo jerárquico, ajustado en cada partición, el corrimiento además se
+encoge según cuánta información aportan los puntos de calibración, con el
+factor $\hat\tau^2/(\hat\tau^2 + \hat\sigma^2/n_c)$. Error absoluto medio en el
+resto de cada recorrido, sin y con calibración, usando el primer 20%:
+
+| | GWR | Regresión global | Modelo jerárquico | Media de entrenamiento |
+|---|---|---|---|---|
+| Gandhinagar, día | 8.9 → 8.3 | 10.8 → 5.8 | 11.2 → 4.5 | 10.0 → 4.6 |
+| Gandhinagar, noche | 11.2 → 11.8 | 10.9 → 7.1 | 10.1 → 5.6 | 12.3 → 5.9 |
+| Ginebra, día | 11.1 → 7.9 | 12.6 → 7.3 | 11.3 → 7.4 | 11.2 → 7.3 |
+| Ginebra, noche | 11.4 → 11.1 | 9.7 → 7.6 | 9.7 → 7.3 | 11.9 → 7.1 |
+
+Calibrar reduce el error de la regresión global, del modelo jerárquico y de la
+media de 10 a 12 dB a entre 4.5 y 7.6 dB, con resultados casi iguales usando el
+10% o el 30% inicial. Pero, ya calibrado, el modelo
+jerárquico no mejora a la media de entrenamiento calibrada, que es
+simplemente el nivel medio del comienzo del recorrido
+($\bar y_{\text{entr}} + \hat u_j = \bar y_{C_j}$): la diferencia por recorrido
+no es significativa en ningún caso (prueba de Wilcoxon pareada con el 20%
+inicial, p ≥ 0.11). El
+GWR calibrado es el peor. Es decir, la velocidad, el rumbo y la hora tienen
+efectos reales, pero chicos frente a la variación de cada segundo. Parte de la
+mejora puede deberse a que los minutos siguientes se parecen a los primeros
+(misma zona, mismo tránsito), y no solo a la calibración del dispositivo.
+
 ### Efectos dentro de los recorridos
 
 Las tablas comparan tres estimaciones globales con los mismos puntos y
@@ -571,6 +615,36 @@ noche. Sin ponderar, las estimaciones cambian algo (por ejemplo, la amplitud
 del rumbo dentro de los recorridos en Gandhinagar de día pasa de 1.1 a 1.9 dB),
 pero las conclusiones no cambian.
 
+**Las etiquetas de velocidad y rumbo se sostienen solo en parte.** Se
+recalculó la clasificación por velocidad y rumbo de las etiquetas, con las
+mismas reglas de normalización por el percentil 75, usando los coeficientes del
+GWR sobre datos centrados por recorrido. Se la comparó con la original mediante
+el kappa de Cohen:
+
+```math
+\kappa = \frac{p_o - p_e}{1 - p_e}
+```
+
+donde $p_o$ es la proporción de ubicaciones con la misma clase en ambas
+versiones y $p_e$ la que se esperaría por azar. La base estacionaria no puede
+evaluarse así, porque al centrar por recorrido se pierde el nivel del lugar.
+
+| | Acuerdo | $\kappa$ | Conservan la clase de velocidad | Conservan la clase de rumbo |
+|---|---|---|---|---|
+| Gandhinagar, día | 53% | 0.24 | 58% | 39% |
+| Gandhinagar, noche | 52% | 0.26 | 60% | 38% |
+| Ginebra, día | 36% | −0.04 | 57% | 4% |
+| Ginebra, noche | 60% | 0.37 | 55% | 55% |
+
+Como los coeficientes locales tienen mucho error de estimación, $\kappa$ no
+llega a 1 aun cuando el efecto existe: con datos simulados, el mismo
+procedimiento da alrededor de 0.3 si el rumbo actúa dentro de los recorridos y
+alrededor de 0 si solo se asocia a través de ellos. La clasificación por
+velocidad se conserva en más de la mitad de las ubicaciones en los cuatro
+casos. La de rumbo se conserva en menos del 40% en Gandhinagar y prácticamente
+desaparece en Ginebra de día (4%): allí, la etiqueta de cañón urbano refleja
+sobre todo diferencias entre recorridos.
+
 ## Interpretación
 
 En Gandhinagar, donde la mayoría de las mediciones se tomó a velocidad de
@@ -615,7 +689,9 @@ medición. Los resultados describen asociaciones, no efectos causales.
   residuos se inflan porque cada recorrido forma su propio vecindario, y los
   errores estándar locales exageran la significación. Por eso el GWR describe
   la muestra, pero anticipa poco el nivel de recorridos nuevos: su error fuera
-  de muestra (8.6 a 12.2 dB) es cercano al de usar la media.
+  de muestra (8.6 a 12.2 dB) es cercano al de usar la media. Aun conociendo el
+  corrimiento de cada recorrido, ningún modelo predice el resto del recorrido
+  mejor que su nivel inicial.
 - **Donde un lugar fue medido por un solo recorrido, no puede separarse la
   calle del dispositivo.** En Ginebra, alrededor del 60% de los puntos no
   comparte su hexágono con ningún otro recorrido; allí, una diferencia de
@@ -626,7 +702,10 @@ medición. Los resultados describen asociaciones, no efectos causales.
   Gandhinagar (2 a 3 dB entre el rumbo más ruidoso y el más silencioso) y no
   se distingue en Ginebra. El fin de semana solo puede compararse entre
   recorridos: los fines de semana más ruidosos de Ginebra se sostienen, y la
-  disminución nocturna de Gandhinagar no se distingue de cero.
+  disminución nocturna de Gandhinagar no se distingue de cero. En las
+  etiquetas, la clasificación por velocidad se conserva en buena parte al
+  separar los recorridos; la de rumbo, poco en Gandhinagar y casi nada en
+  Ginebra de día.
 
 ## Limitaciones
 
