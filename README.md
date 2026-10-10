@@ -33,6 +33,13 @@ weekday/weekend.
   tracks. In Geneva, the stationary base is the most exposed label: at night,
   73% of its locations are in that situation, and its level may be offset by
   about 8 dB by the phone.
+- **In Gandhinagar, differences between tracks come from the phones; in
+  Geneva, largely from the place.** A model that estimates each place's level
+  and each track's offset at the same time leaves those offsets at 10 to 12 dB
+  in Gandhinagar, associated with calibration gain, and reduces them to 5 to
+  7 dB in Geneva. Without the offsets, the heading effect on the Gandhinagar
+  maps falls to less than half, and the labels change considerably (kappa of
+  0.2 to 0.5 against the originals).
 - **NoiseCapture's hourly profile proved unreliable as a control in Geneva.**
   Most points do not share their hexagon with other tracks, and the fit
   depended heavily on how that profile was built. The main model therefore
@@ -326,7 +333,49 @@ $\tau/\sqrt{N_{\text{eff}}}$ is used as a measure of how much of the local
 level may be due to the phones, with $\tau$ estimated by each case's
 hierarchical model. It is approximate: with covariates, the exact carry-over
 also depends on them, and $\tau$ includes real differences between the areas
-each track covered, so it works as an upper bound.
+each track covered, so it works as an upper bound. The exact carry-over is
+computed with the next model.
+
+**Spatial model with a track effect.** To separate the level of the place from
+each track's offset in a single equation, a generalized additive model
+(Wood, 2017) was fitted with smooth surfaces over the coordinates and a random
+effect per track. With $\mathbf{p}_{ij}$ the position of the measurement:
+
+```math
+L_{ij} = a + f_0(\mathbf{p}_{ij}) + f_v(\mathbf{p}_{ij})\, v_{ij} + f_c(\mathbf{p}_{ij})\, \tilde c_{ij} + f_s(\mathbf{p}_{ij})\, \tilde s_{ij} + \mathbf{z}_{ij}^\top \boldsymbol\gamma + u_j + \varepsilon_{ij}, \qquad u_j \sim N(0, \tau^2)
+```
+
+$f_0$ is the level of the place net of the phone, and $f_v$, $f_c$ and $f_s$
+are the spatially varying speed and heading coefficients, the counterpart of
+the local GWR coefficients. Each surface is a thin-plate spline whose
+smoothness is chosen by REML. $\mathbf{z}_{ij}$ holds the speed-heading
+interactions, hour, the area measurement count and the weekend, with effects
+common to the whole area. As in the within-between model, the variance of
+$\varepsilon_{ij}$ depends on the gain group, and there is an AR(1)
+correlation between consecutive points of each track.
+
+Offsets are identified where tracks cross: if two tracks measure the same
+place, $L_1 - L_2 \approx u_1 - u_2$. Where a track measures alone, its level
+can be attributed to the place or to the phone, and the split depends on the
+penalties. Comparing $\hat\tau$ with and without the surfaces shows how much of
+the differences between tracks corresponds to where they measured:
+
+```math
+\text{between-track variance attributed to place} = 1 - \frac{\hat\tau^2_{\text{with place}}}{\hat\tau^2_{\text{without place}}}
+```
+
+**GWR without offsets.** Since GWR is linear in the observations, each local
+coefficient splits exactly into two parts:
+
+```math
+\hat{\boldsymbol\beta}_{\text{GWR}}(\mathbf{p}) = \underbrace{\big(X^\top W(\mathbf{p}) X\big)^{-1} X^\top W(\mathbf{p})\,(\mathbf{L} - \hat{\mathbf{u}})}_{\text{GWR without offsets}} + \underbrace{\big(X^\top W(\mathbf{p}) X\big)^{-1} X^\top W(\mathbf{p})\,\hat{\mathbf{u}}}_{\text{carry-over from tracks}}
+```
+
+where $\hat{\mathbf{u}}$ assigns each measurement the estimated offset of its
+track. The first term is equivalent to rerunning the same GWR, with the same
+weights and terms, on the corrected levels. With that version and with the
+surfaces of the spatial model, labels were recomputed with the same rules and
+compared with the originals using Cohen's kappa.
 
 ## Operational labels
 
@@ -373,8 +422,9 @@ intercept is near the median (within 0.33 IQR).
 
 Labels are computed from GWR coefficients, which mix differences within each
 track and between tracks. How far they hold once these are separated is
-assessed in *Effects within tracks*, and how many tracks lie behind each
-location in *Tracks behind each location*.
+assessed in *Effects within tracks*; how many tracks lie behind each location,
+in *Tracks behind each location*; and how labels change without the track
+offsets, in *Place and phone in one model*.
 
 ## Findings
 
@@ -796,6 +846,99 @@ single-track neighbourhoods: where several contribute, GWR slopes also absorb
 differences between tracks, which the within-between model estimates with
 large error.
 
+### Place and phone in one model
+
+**In Gandhinagar, offsets come from the phone; in Geneva, largely from the
+place.** Standard deviation of level offsets without and with the level of the
+place in the model:
+
+| | $\hat\tau$ without place | $\hat\tau$ with place | Between-track variance attributed to place | Offset and gain: Spearman / group R² | Weekend, compared at the same places |
+|---|---|---|---|---|---|
+| Gandhinagar, day | 12.4 dB | 11.9 dB | 7% | 0.59 / 0.31 | −3.0 (4.4) |
+| Gandhinagar, night | 10.2 dB | 10.4 dB | ≈ 0% | 0.57 / 0.18 | −4.8 (2.6) |
+| Geneva, day | 9.9 dB | 5.2 dB | 72% | 0.01 / 0.00 | +8.3 (3.7) |
+| Geneva, night | 10.0 dB | 7.4 dB | 45% | 0.15 / 0.34 | +12.3 (4.2) |
+
+In Gandhinagar, accounting for where each track measured does not reduce its
+offset: offsets remain at 10 to 12 dB and are associated with calibration
+gain. They also hold for tracks that cross others, where the model can compare
+them directly (the offset with place is 0.95 to 1.01 times the one estimated
+without it). They are device differences. In Geneva, by contrast, between half
+and three quarters of the differences between tracks correspond to where they
+measured, and each phone's own offset is 5 to 7 dB, unrelated to gain by day.
+That split rests on few crossings: only 21% to 27% of points have another
+track within 50 m (29% to 44% in Gandhinagar), and where a track measures
+alone its level cannot be attributed with certainty to the place or to the
+phone. The weekend, comparing tracks at the same places, cannot be
+distinguished from zero in Gandhinagar (p = 0.49 and 0.07) and is louder in
+Geneva (p = 0.02 and 0.003), within the range of the other models.
+
+**The local GWR level in Gandhinagar carries several dB from the phones.**
+Both levels are evaluated at mean speed, with the other variables at their
+reference value, like the GWR intercept:
+
+| | Median $\lvert$GWR level − level of the place$\rvert$ | Same, with GWR without offsets | Median $\lvert$carry-over$\rvert$ from tracks | Median $\hat\tau/\sqrt{N_{\text{eff}}}$ |
+|---|---|---|---|---|
+| Gandhinagar, day | 5.4 dB | 1.0 dB | 5.8 dB | 5.5 dB |
+| Gandhinagar, night | 12.6 dB | 2.7 dB | 10.0 dB | 5.8 dB |
+| Geneva, day | 3.7 dB | 4.2 dB | 2.6 dB | 3.4 dB |
+| Geneva, night | 4.6 dB | 3.3 dB | 3.7 dB | 3.8 dB |
+
+In Gandhinagar, almost all of the difference between the local GWR level and
+the level of the place is the carry-over from tracks: once it is removed, the
+median difference falls from 5.4 to 1.0 dB by day and from 12.6 to 2.7 dB at
+night. The approximation $\hat\tau/\sqrt{N_{\text{eff}}}$ gets the order of
+magnitude right, except in nighttime Gandhinagar, where nearly collinear local
+designs amplify the carry-over. Point by point, however, it explains little:
+the R² between the exact carry-over and $\sum_j \omega_j u_j$ ranges from 0.02
+to 0.74. Terms that barely vary within a track, such as the weekend and hour,
+absorb and redistribute part of the offsets. In Geneva, the spatial model
+attributes to the place much of what GWR attributes to tracks, so the
+comparison is less direct.
+
+**Without offsets, the heading effect on the Gandhinagar maps falls to less
+than half.** Local medians; heading as an amplitude in dB, speed in dB per m/s:
+
+| | Heading: GWR | Heading: GWR without offsets | Heading: spatial model | Speed: GWR | Speed: GWR without offsets | Speed: spatial model |
+|---|---|---|---|---|---|---|
+| Gandhinagar, day | 4.9 | 1.7 | 2.1 | 0.65 | 0.50 | 0.60 |
+| Gandhinagar, night | 7.1 | 3.0 | 1.9 | 0.55 | 0.65 | 0.60 |
+| Geneva, day | 1.6 | 1.8 | 1.9 | 1.58 | 1.97 | 0.51 |
+| Geneva, night | 2.6 | 2.6 | 1.4 | 1.39 | 0.95 | 0.80 |
+
+In Gandhinagar, removing the offsets reduces the median heading amplitude from
+4.9 to 1.7 dB by day and from 7.1 to 3.0 dB at night, and the spatial model
+gives about 2 dB, in line with the within-track estimates. The reduction is
+concentrated where several tracks contribute (by day, from 5.5 to 1.6 dB with
+$N_{\text{eff}} \ge 4$): there, tracks with different offsets travelling in
+different directions create an apparent heading effect. In Geneva the GWR
+heading effect does not change. Speed barely changes in Gandhinagar; in
+daytime Geneva, the spatial model does not distinguish a speed effect
+(p = 0.51), in line with the within-between model.
+
+**Labels change considerably, and in Gandhinagar the stationary base holds
+only where several tracks contribute.** Kappa between the original and the
+recomputed labels, excluding anomalous ones, and share of the GWR stationary
+base kept once offsets are removed, with the number of locations in
+parentheses:
+
+| | $\kappa$: GWR without offsets | $\kappa$: spatial model | Stationary base kept: total | With $N_{\text{eff}} \lt 2$ | With $N_{\text{eff}} \ge 4$ |
+|---|---|---|---|---|---|
+| Gandhinagar, day | 0.22 | 0.12 | 41% (683) | 0% (22) | 44% (489) |
+| Gandhinagar, night | 0.25 | 0.14 | 27% (427) | 0% (91) | 96% (97) |
+| Geneva, day | 0.20 | 0.11 | 39% (437) | 3% (74) | 32% (113) |
+| Geneva, night | 0.47 | 0.23 | 55% (210) | 73% (153) | 0% (14) |
+
+The speed classification is the most stable: 52% to 68% of it is kept without
+offsets. In Gandhinagar, the stationary base disappears where a single track
+dominates the neighbourhood and holds where four or more contribute,
+especially at night (96%). In Geneva, 95% or more of the stationary-base
+locations have no other track within 50 m, so the model cannot separate place
+from phone there: the 73% kept at night with $N_{\text{eff}} \lt 2$ means it was
+not corrected, not that it was confirmed. Since labels are defined with
+percentiles within each version, part of the change is due to the thresholds
+changing as well.
+
 ## Interpretation
 
 In Gandhinagar, where most measurements were taken at vehicle speeds, GWR
@@ -804,8 +947,11 @@ that association comes from differences between tracks: within a single track
 the effect is 1.5 to 4 dB, and the spatial pattern of the maps is not
 reproduced. The corridors shown on the maps mostly reflect which tracks, with
 which device and measurement mode, went along each street and in which
-direction. The effect that remains within tracks is consistent with the
-vehicle's own noise, with different exposure to traffic depending on the
+direction. A model that estimates the level of the place and each track's
+offset at the same time confirms it: offsets are not explained by place, they
+are associated with calibration, and once they are removed the heading
+amplitude on the maps falls to less than half. The effect that remains within
+tracks is consistent with the vehicle's own noise, with different exposure to traffic depending on the
 direction, or with street geometry. The nighttime weekend decrease appears at
 most GWR locations, but estimated across tracks (−3.5 to −4.8 dB) it cannot
 be distinguished from zero.
@@ -813,13 +959,17 @@ be distinguished from zero.
 In Geneva, speeds were predominantly consistent with walking by day, while
 the nighttime period showed a broader mix. There, no heading effect can be
 distinguished within tracks, and the model explains a smaller share of the
-variation. By day, speed is associated with level along each track but not
-between measurements a few seconds apart, which suggests it marks the stretch
-rather than the movement. Weekends look louder, but the estimate changes a lot
-depending on which track characteristics are taken into account (+5 to
-+21 dB) and compares different tracks, so differences in device, timing or
-who measured cannot be ruled out. Moreover, Geneva's stationary base largely
-depends on one or two tracks per location.
+variation. Differences between tracks correspond more to the place than to
+the phone: the spatial model attributes between half and three quarters of
+them to where tracks measured, although with few crossings between tracks to
+check it. By day, speed is associated with level along each track but not
+between measurements a few seconds apart, nor once the place is separated,
+which suggests it marks the stretch rather than the movement. Weekends look
+louder, but the estimate changes a lot depending on which track
+characteristics are taken into account (+5 to +21 dB) and compares different
+tracks, so differences in device, timing or who measured cannot be ruled out.
+Moreover, Geneva's stationary base largely depends on one or two tracks per
+location, with no other tracks nearby to check it against.
 
 Since the two cities were measured differently, the share of the differences
 between them due to the cities rather than the measurement mode cannot be
@@ -827,19 +977,29 @@ separated. The results describe associations, not causal effects.
 
 ## Conclusions
 
-- **In this crowdsourced data, measurement conditions matter more than place.**
-  Between 62% and 77% of the variation in level comes from differences in mean
-  level between tracks. Device calibration is the part that can be measured:
-  the gain group explains 28% to 52% of those differences (weighting each track
-  by its number of points), and it also changes measurement noise, with
-  residual standard deviations of 2 to 10 dB depending on the group. The rest
-  comes from track-specific conditions not recorded in the data, such as how
-  the phone was carried, the travel mode or the day.
+- **In this crowdsourced data, measurement conditions weigh heavily, and in
+  Gandhinagar more than place.** Between 62% and 77% of the variation in level
+  comes from differences in mean level between tracks. In Gandhinagar these
+  are phone differences: a model that estimates the level of the place and
+  each track's offset at the same time leaves them almost unchanged (10 to
+  12 dB). In Geneva, between half and three quarters correspond to where
+  tracks measured, and the phones' own offset is 5 to 7 dB. Device calibration
+  is the part that can be measured: without accounting for place, the gain
+  group explains 28% to 52% of the differences between tracks (weighting each
+  track by its number of points); in Gandhinagar, each track's offset is
+  associated with its gain even after accounting for place (Spearman 0.57 and
+  0.59). Gain also changes measurement noise, with residual standard
+  deviations of 2 to 10 dB depending on the group. The rest comes from
+  track-specific conditions not recorded in the data, such as how the phone
+  was carried, the travel mode or the day.
 - **A spatial model that ignores tracks confuses place with who measured.**
   The patterns on the GWR maps largely reflect which tracks went through each
   area. Local R² and residual autocorrelation are inflated because each track
   forms its own neighbourhood: local R² is higher where fewer tracks
-  contribute. Local standard errors also overstate significance. GWR therefore describes the sample but says little about the
+  contribute. In Gandhinagar, the local GWR level departs from the level of
+  the place by a median of 5 to 13 dB, and almost all of that difference is
+  carry-over from track offsets. Local standard errors also overstate
+  significance. GWR therefore describes the sample but says little about the
   level of new tracks: its out-of-sample error (8.6 to 12.2 dB) is close to
   that of the mean. Even knowing each track's offset, no model predicts the
   rest of the track better than its starting level.
@@ -850,20 +1010,24 @@ separated. The results describe associations, not causal effects.
   tracks, with a possible offset of 6 to 10 dB in the local level. In Geneva,
   the stationary base is the most exposed label (73% of its nighttime
   locations are in that situation); in nighttime Gandhinagar, urban canyon
-  (41%).
+  (41%). Once offsets are removed, Gandhinagar's stationary base disappears
+  where a single track dominates and holds where four or more contribute (44%
+  by day and 96% at night).
 - **What holds once tracks are separated is narrower.** Speed is associated
   with more noise within a single track in Gandhinagar and nighttime Geneva
   (0.45 to 0.7 dB per m/s), also between measurements a few seconds apart; in
   daytime Geneva, only with slow changes along the track. Heading has a real
   but small effect in Gandhinagar (1.5 to 4 dB between the loudest and
-  quietest heading) and cannot be distinguished in Geneva. Differences between
-  tracks, by contrast, are estimated with errors 5 to 13 times larger. So the
+  quietest heading) and cannot be distinguished in Geneva; without offsets,
+  the median heading amplitude on the Gandhinagar maps falls from 4.9 and
+  7.1 dB to 1.7 and 3.0 dB. Differences between tracks, by contrast, are estimated with errors 5 to 13 times larger. So the
   weekend, which can only be compared across tracks, changes a lot depending
   on what is taken into account, and Gandhinagar's nighttime decrease cannot
   be distinguished from zero. In the labels, the speed classification largely
   holds once tracks are separated; the heading classification holds little in
   Gandhinagar and hardly at all in daytime Geneva, and agreement does not
-  improve systematically where more tracks contribute.
+  improve systematically where more tracks contribute. With labels recomputed
+  without offsets, kappa against the originals ranges from 0.2 to 0.5.
 
 ## Limitations
 
@@ -927,11 +1091,17 @@ separated. The results describe associations, not causal effects.
   attention rather than significance tests.
 
 - The effective number of tracks assumes that track offsets are independent,
-  and it describes exactly only the carry-over into the intercept; for slopes
-  it is an approximation. The between-track part of the within-between model
-  is estimated from 45 to 90 tracks with about ten track-level terms, so it is
-  imprecise and sensitive to which variables are included, as the weekend
-  shows.
+  and $\hat\tau/\sqrt{N_{\text{eff}}}$ gets the order of magnitude of the
+  carry-over right, but not its value at each location. The between-track part
+  of the within-between model is estimated from 45 to 90 tracks with about ten
+  track-level terms, so it is imprecise and sensitive to which variables are
+  included, as the weekend shows.
+
+- The spatial model separates place from phone only where tracks cross: 21% to
+  44% of points have another track within 50 m. Where a track measures alone,
+  the split depends on the penalties, so in Geneva the share attributed to the
+  place may be overestimated. Its AR(1) correlation assumes points equally
+  spaced in time, so it is an approximation.
 
 ## References
 
@@ -945,6 +1115,8 @@ separated. The results describe associations, not causal effects.
   *Econometrica*, 46(1), 69–85.
 - Pinheiro, J. C. and Bates, D. M. (2000). *Mixed-Effects Models in S and
   S-PLUS*. Springer.
+- Wood, S. N. (2017). *Generalized Additive Models: An Introduction with R*
+  (2nd ed.). CRC Press.
 
 ## Contents
 
