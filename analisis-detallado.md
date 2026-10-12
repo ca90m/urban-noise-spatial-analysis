@@ -467,12 +467,12 @@ comparables entre ciudades. En la siguiente tabla se describe cada etiqueta.
 
 | Etiqueta | Interpretación |
 |---|---|
-| Predominio de la velocidad | El ruido varía con la velocidad de desplazamiento, y la dirección tiene poca influencia. |
+| Velocidad dominante | El ruido varía con la velocidad de desplazamiento, y la dirección tiene poca influencia. |
 | Cañón urbano / direccional | Predomina la orientación, es decir, a la misma velocidad el ruido cambia según el eje de circulación. Es un patrón compatible con calles encajonadas. |
 | Base estacionaria | Intercepto local alto según las reglas operativas, con efectos débiles de la velocidad y la orientación. Puede reflejar el lugar o los recorridos que lo midieron (ver *Lugar y recorrido en un mismo modelo*). |
-| Ruido uniforme | Velocidad y orientación empatadas o relativamente débiles, con el nivel predicho a no más de 3 dB del intercepto y este cercano a la mediana del caso. |
+| Ruido parejo | Velocidad y orientación empatadas o relativamente débiles, con el nivel predicho a no más de 3 dB del intercepto y este cercano a la mediana del caso. |
 | Transición / mixto | Sin predominio claro de velocidad u orientación según las reglas utilizadas, ya que sus magnitudes normalizadas son comparables o ambas son relativamente bajas. |
-| Anómalo / a revisar | El residuo supera el umbral ajustado por calibración de su intervalo de ganancia y forma parte de un agrupamiento de residuos altos. Se marca para inspección, sin asignarle una interpretación. |
+| Anómalo / revisar | El residuo supera el umbral ajustado por calibración de su intervalo de ganancia y forma parte de un agrupamiento de residuos altos. Se marca para inspección, sin asignarle una interpretación. |
 
 ### Reglas de asignación
 
@@ -489,9 +489,9 @@ Se considera que un efecto es fuerte si $\max(s_i, a_i) \ge 0{,}8$, y que hay
 empate si $s_i / a_i$ está entre $1/1{,}2$ y $1{,}2$. Las etiquetas se asignan en
 el siguiente orden, y cada punto recibe la primera que cumple:
 
-1. *Anómalo / a revisar*, si cumple el criterio de anomalías descrito en la
+1. *Anómalo / revisar*, si cumple el criterio de anomalías descrito en la
    sección de calibración.
-2. *Predominio de la velocidad*, si hay un efecto fuerte y $s_i / a_i \gt 1{,}2$.
+2. *Velocidad dominante*, si hay un efecto fuerte y $s_i / a_i \gt 1{,}2$.
 3. *Cañón urbano / direccional*, si hay un efecto fuerte y
    $s_i / a_i \lt 1/1{,}2$.
 4. *Base estacionaria*, si el intercepto supera su percentil 75, y ni la
@@ -500,7 +500,7 @@ el siguiente orden, y cada punto recibe la primera que cumple:
    o con ambos efectos débiles.
 
 Por último, un punto no anómalo con empate o efectos débiles pasa a ruido
-uniforme si su nivel predicho está a no más de 3 dB del intercepto y el
+parejo si su nivel predicho está a no más de 3 dB del intercepto y el
 intercepto está cerca de la mediana (a no más de 0,33 veces el rango
 intercuartílico).
 
@@ -677,7 +677,7 @@ El ajuste del modelo varió entre las etiquetas asignadas. Las ubicaciones de
 base estacionaria tuvieron el mayor R² local medio en los cuatro casos (de
 0,73 a 0,84) y el menor |residuo| medio en tres (de 2,4 a 5,4 dB). En
 Gandhinagar de día, el menor residuo correspondió a cañón urbano (2,4 dB). Por
-su parte, ruido uniforme tuvo el peor ajuste entre los regímenes regulares en
+su parte, ruido parejo tuvo el peor ajuste entre los regímenes regulares en
 los cuatro casos (R² local medio de 0,41 a 0,62). En la clase anómala, el
 |residuo| medio va de 16 a 21 dB, aunque esta clase reúne como máximo el 2,6 %
 de los puntos. En general, el R² local medio del modelo varía entre 0,54 y
@@ -1094,7 +1094,7 @@ a sí mismo.
 A continuación se muestra la mediana de $N_{\text{ef}}$ por etiqueta y, entre
 paréntesis, el porcentaje de sus ubicaciones con $N_{\text{ef}} \lt 2$.
 
-| | Predominio de la velocidad | Cañón urbano / direccional | Base estacionaria | Ruido uniforme | Transición / mixto | Anómalo / a revisar |
+| | Velocidad dominante | Cañón urbano / direccional | Base estacionaria | Ruido parejo | Transición / mixto | Anómalo / revisar |
 |---|---|---|---|---|---|---|
 | Gandhinagar, día | 11,5 (1 %) | 5,1 (0 %) | 4,7 (3 %) | 4,8 (0 %) | 5,1 (2 %) | 4,3 (0 %) |
 | Gandhinagar, noche | 4,2 (17 %) | 2,4 (41 %) | 2,7 (21 %) | 3,2 (13 %) | 3,3 (24 %) | 3,0 (18 %) |
@@ -1104,7 +1104,7 @@ paréntesis, el porcentaje de sus ubicaciones con $N_{\text{ef}} \lt 2$.
 En Ginebra, la base estacionaria es la etiqueta con menos recorridos detrás.
 De noche, el 73 % de sus ubicaciones tiene menos de dos recorridos efectivos, y
 la escala de variación por los corrimientos es de 8,4 dB en la mediana, frente
-a 3,0 a 4,0 dB en cañón urbano, ruido uniforme y transición. Como esa etiqueta
+a 3,0 a 4,0 dB en cañón urbano, ruido parejo y transición. Como esa etiqueta
 se asigna por un intercepto alto, en Ginebra puede reflejar el nivel de un
 recorrido más que el del lugar, lo que también puede explicar en parte su R²
 local alto. Es decir, la base estacionaria de Ginebra se apoya en pocos
@@ -1113,7 +1113,7 @@ recorridos.
 En Gandhinagar de noche, la etiqueta con menos recorridos es cañón urbano
 (mediana de 2,4; 41 % con menos de dos). En Gandhinagar de día, todas las
 etiquetas tienen una mediana de al menos 4. En Ginebra, por su parte, el ruido
-uniforme aparece donde más recorridos se promedian (mediana de 8 a 9).
+parejo aparece donde más recorridos se promedian (mediana de 8 a 9).
 
 #### Acuerdo de las etiquetas según el número de recorridos
 
